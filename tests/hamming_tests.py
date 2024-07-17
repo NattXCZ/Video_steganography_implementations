@@ -31,7 +31,7 @@ if __name__ == "__main__":
     
 
     #promenna flag ridi jakou cast testujeme
-    flag = 3
+    flag = 4
     
     #promenna shuffle ridi jestli chceme vyuzivat michani pixelu snimku pred vlozenim - s nim vypocet někdy trva dlouho proto je ted na False
     #ale lze prepnout na True

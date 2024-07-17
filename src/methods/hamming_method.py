@@ -8,7 +8,7 @@ from src.utils import binary_utils as bnr
 from src.utils import video_processing_utils as vid_utils
 
 
-#!tohle je verze bez wor a col
+#!tohle je verze bez row a col
 
 
 #FIXME: Detekuje jen 1-bit chyby! Což dělá problém když se z videa extrahuje RGB snímek (ten se pak převádí na YUV).
@@ -326,6 +326,9 @@ def hamming_decode(stego_video_path, shift_key, col_key, row_key, message_len, o
         print(f"[INFO] saved decoded message as {output_path}")
 
     vid_utils.remove_dirs()
+    
+    if string_flag:
+        return message
 
 def hamming_decode_codeword(codeword, H_transposed):
 

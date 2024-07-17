@@ -1,3 +1,6 @@
+
+    
+        
 import os
 
 import numpy as np
@@ -9,9 +12,6 @@ from src.utils import video_processing_utils as vid_utils
 from src.utils import binary_utils as bnr
 from galois import BCH
 
-def test():
-    
-    print("here here")
 
 #TODO: funguje pro text (v DWT ma nějake chyby) a nefunguje převod na video a zpět - stejný problém jako u LSB
 #FIXME: chyba pri kratke zprave - kdyz je klic1 = 0
@@ -31,10 +31,9 @@ def encode_bch_dwt(orig_video_path, message_path, xor_key,  string_flag = False,
     
 
     # Processing input message. Convert the secret information to a 1-D array, and after that change the position of  the entire message using chaotic algorithm 
-    if string_flag:
-        bin_arr = bnr.string_to_binary_array(message_path)
-    else:
-        bin_arr = bnr.file_to_binary_1D_arr(message_path)
+
+    bin_arr = bnr.string_to_binary_array(message_path)
+
 
 
     # make message bits chaotic
@@ -54,7 +53,17 @@ def encode_bch_dwt(orig_video_path, message_path, xor_key,  string_flag = False,
     
     
     codew_p_frame, codew_p_last_frame =  distribution_of_bits_between_frames(message_len,vid_properties["frames"], bch_num)
-    actual_max_codew = codew_p_frame
+    
+    
+    zero_key = False
+    if codew_p_frame == 0:
+        actual_max_codew = 1
+        zero_key = True
+    else:
+        actual_max_codew = codew_p_frame
+    
+    
+    
     embedded_codewords_per_frame = 0
         
     row = 0
@@ -106,7 +115,6 @@ def encode_bch_dwt(orig_video_path, message_path, xor_key,  string_flag = False,
         HL_V_bin = format(floor(abs(HL_V[row, col] + 0.0000001)), '#010b')
         HH_V_bin = format(floor(abs(HH_V[row, col] + 0.0000001)), '#010b')
         
-        
 
         LH_Y[row, col] = int(LH_Y_bin[:-3] + ''.join(str(bit) for bit in codeword[:3]), 2)
         HL_Y[row, col] = int(HL_Y_bin[:-3] + ''.join(str(bit) for bit in codeword[3:6]), 2)
@@ -130,7 +138,7 @@ def encode_bch_dwt(orig_video_path, message_path, xor_key,  string_flag = False,
             row += 1
             
         if embedded_codewords_per_frame >= actual_max_codew:
-            curr_frame += 1
+
             embedded_codewords_per_frame = 0
             
             HH_Y = HH_Y.reshape(LL_Y.shape)
@@ -154,7 +162,7 @@ def encode_bch_dwt(orig_video_path, message_path, xor_key,  string_flag = False,
             cv2.imwrite(u_component_path, U_new)
             cv2.imwrite(v_component_path, V_new)
                 
-                
+            curr_frame += 1
             if curr_frame == vid_properties["frames"]:
                 actual_max_codew = codew_p_last_frame
 
@@ -174,17 +182,29 @@ def encode_bch_dwt(orig_video_path, message_path, xor_key,  string_flag = False,
         
     
     print(f"[INFO] embedding finished")
+    
+    if zero_key:
+        return 0, codew_p_last_frame
+
     return codew_p_frame, codew_p_last_frame
 
 
 
-def decode_bch_dwt(stego_video_path, codew_p_frame,codew_p_last_frame, xor_key, output_path, string_flag = False, flag_recostr_vid = True, bch_num = 11):
+def decode_bch_dwt(stego_video_path, codew_p_frame, codew_p_last_frame, xor_key, output_path, string_flag = False, flag_recostr_vid = True, bch_num = 11):
     bch = BCH(15,bch_num)
 
     decoded_message = []
     codeword_chaos =  np.zeros(15, dtype = np.uint8)
     decoded_codeword = np.zeros(bch_num, dtype = np.uint8)
     
+
+    zero_key = False
+    if codew_p_frame == 0:
+        actual_max_codew = 1
+        zero_key = True
+    else:
+        actual_max_codew = codew_p_frame
+
 
     if flag_recostr_vid:
         vid_properties = vid_utils.video_to_rgb_frames(stego_video_path)
@@ -198,7 +218,6 @@ def decode_bch_dwt(stego_video_path, codew_p_frame,codew_p_last_frame, xor_key, 
     else:
         vid_properties = ret_properties(stego_video_path)
     
-    actual_max_codew = codew_p_frame
     
     for curr_frame in range(1, int(vid_properties["frames"]) + 1):
         embedded_codewords = 0
@@ -243,7 +262,7 @@ def decode_bch_dwt(stego_video_path, codew_p_frame,codew_p_last_frame, xor_key, 
                 
                 #* Obtain the encoded data from the YUV components and XOR with the random number using the same key that was used in the sender side.
                 LH_Y_bin = format(floor(abs(LH_Y[row, col] + 0.0000001)), '#010b')
-                HL_Y_bin = format(floor(abs(HL_Y[row, col] + 0.0000001 )), '#010b')
+                HL_Y_bin = format(floor(abs(HL_Y[row, col] + 0.0000001)), '#010b')
                 HH_Y_bin = format(floor(abs(HH_Y[row, col] + 0.0000001)), '#010b')
         
                 LH_U_bin = format(floor(abs(LH_U[row, col] + 0.0000001)), '#010b')
@@ -284,25 +303,19 @@ def decode_bch_dwt(stego_video_path, codew_p_frame,codew_p_last_frame, xor_key, 
                 embedded_codewords += 1
                 
         #end of proceesing current frame
-
+        if zero_key and codew_p_last_frame == curr_frame:
+            break
 
     output_message = process_binary_array(np.array(decoded_message), False)
+
+
 
     diff = bch_num - (len(output_message) % bch_num)
     output_message = output_message[:-diff]
 
-    if string_flag:
-        message = bnr.binary_array_to_string(output_message)
-        if os.path.splitext(output_path)[1] == '.txt':
-            write_message_to_file(message,output_path)
-            print(f"[INFO] saved decoded message as {output_path}")
-        else:
-            print(f"[DECODED MESSAGE] {message}")
-    else:
-        bnr.binary_1D_arr_to_file(output_message, output_path)  
-        print(f"[INFO] saved decoded message as {output_path}")
+    message = bnr.binary_array_to_string(output_message)
 
-    vid_utils.remove_dirs()
+    #vid_utils.remove_dirs()
     
     return message
 
