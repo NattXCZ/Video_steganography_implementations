@@ -1,6 +1,6 @@
 import numpy as np
 
-from src.methods import dwt_method as bch_dwt
+from src.methods import bch_code_dwt as bch_dwt
 from src.utils import binary_utils as bnr
 
 xor_key =  np.array([1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1])

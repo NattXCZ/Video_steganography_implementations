@@ -4,7 +4,7 @@ import numpy as np
 import cv2
 
 #from src.methods import hamming_code as hmc
-from src.methods import hamming_method as hmc
+from src.methods import hamming_code as hmc
 from src.utils import binary_utils as bnr
 
 
@@ -32,6 +32,8 @@ if __name__ == "__main__":
 
     #promenna flag ridi jakou cast testujeme
     flag = 4
+    message_text_string = "Lorem ipsum dolor sit amet tempor consequat et sit dolore dolores vero ut et nisl eros ipsum no ipsum."
+
     
     #promenna shuffle ridi jestli chceme vyuzivat michani pixelu snimku pred vlozenim - s nim vypocet někdy trva dlouho proto je ted na False
     #ale lze prepnout na True
@@ -45,7 +47,7 @@ if __name__ == "__main__":
     
     
     xor_key = np.array([1, 1, 1, 0, 0, 1, 1]) # 7-bit value
-    
+
     #SOUBOR
     if flag == 1:
         #zakodovani souboru do videa (tady zakoduje obrazek png)
@@ -61,13 +63,15 @@ if __name__ == "__main__":
     #STRING
     elif flag == 3:
         #zakodovani retezce do videa
+
         hmc.hamming_encode(video_path,message_text_string, key_1, key_2, key_3, xor_key, string_flag = True, shuffle_flag = shuffle,flag_delete_dirs = recontructed_vid)
         
+        print("")
         
     elif flag == 4:
         #dekodovani retezce z videa
 
         message_len_string = len(bnr.string_to_binary_array(message_text_string))
-        hmc.hamming_decode(stego_video_path, key_1, key_2, key_3, message_len_string, output_path,xor_key, string_flag = True, shuffle_flag = shuffle, flag_recostr_vid = recontructed_vid)
-
+        decoded = hmc.hamming_decode(stego_video_path, key_1, key_2, key_3, message_len_string, output_path,xor_key, string_flag = True, shuffle_flag = shuffle, flag_recostr_vid = recontructed_vid)
+        print(decoded)
 

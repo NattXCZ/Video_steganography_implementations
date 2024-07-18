@@ -5,9 +5,9 @@ import numpy as np
 import threading
 
 
-from src.methods import hamming_method as hmc
+from src.methods import hamming_code as hmc
 
-from src.methods import dwt_method as bch_dwt
+from src.methods import bch_code_dwt as bch_dwt
 
 recontructed_vid = False
 intro_text = (
