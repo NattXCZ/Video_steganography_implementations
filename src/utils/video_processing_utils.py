@@ -1,6 +1,7 @@
 import os
 import shutil
 from subprocess import run ,call ,STDOUT ,PIPE
+from math import ceil
 
 import cv2
 import numpy as np
@@ -394,3 +395,17 @@ def reconstruct_video_from_IBP_frames(file_path, properties, ffmpeg_path = r".\s
     tmp_file = r"tmp"
     merge_files(tmp_file)
     reconstruct_video_from_rgb_frames(file_path, properties,ffmpeg_path)
+
+
+
+
+
+def distribution_of_bits_between_frames(len_message, frame_count, n):
+    codew_in_msg = ceil(len_message / n)
+    codew_p_frame = codew_in_msg // frame_count
+    tail = codew_in_msg - (codew_p_frame * frame_count) 
+    
+    return codew_p_frame, codew_p_frame + tail
+
+
+

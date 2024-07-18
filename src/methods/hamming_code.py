@@ -47,7 +47,7 @@ H_transposed = np.array([
     [1, 0, 1]
 ])
 
-max_bits_per_frame = 22500    #maximum of bits saved in one frame (22500)
+
 xor_key = np.array([1, 1, 1, 0, 0, 1, 1]) # 7-bit value 
 
 
@@ -82,7 +82,8 @@ def hamming_encode(orig_video_path, message_path, shift_key, col_key, row_key,xo
     
     
     # Count how much data will be stored in each frame
-    codew_p_frame, codew_p_last_frame =  distribution_of_bits_between_frames(len(message),vid_properties["frames"])
+    codew_p_frame, codew_p_last_frame =  vid_utils.distribution_of_bits_between_frames(len(message),vid_properties["frames"], 4)
+
     
     
     
@@ -247,7 +248,7 @@ def hamming_decode(stego_video_path, shift_key, col_key, row_key, message_len, o
             
             
     
-    codew_p_frame, codew_p_last_frame =  distribution_of_bits_between_frames(message_len,vid_properties["frames"])
+    codew_p_frame, codew_p_last_frame =  vid_utils.distribution_of_bits_between_frames(message_len,vid_properties["frames"], 4)
     
     
     zero_key = False
@@ -386,15 +387,6 @@ def fill_end_zeros(input_array):
 
         return adjusted_array
     
-
-def distribution_of_bits_between_frames(len_message, frame_count):
-
-    codew_in_msg = len_message // 4  # total number of words (divided by 4 bits per word)
-
-    codew_p_frame, tail = divmod(codew_in_msg, frame_count)
-
-    return codew_p_frame, codew_p_frame + tail
-
 
 #shuffle
 def seeded_shuffle_image(image, seed):

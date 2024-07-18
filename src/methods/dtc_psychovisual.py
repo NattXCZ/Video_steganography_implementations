@@ -455,7 +455,8 @@ def extracting_technique_abs(D):
 
 def main():
     video_file_path = r"data_testing\input_video.mp4"
-    message = "Hello how are you. I am fine what about you"
+    #message = "Hello how are you. I am fine what about you"
+    message = "Lorem ipsum dolor sit amet nulla diam ipsum sea vero. Vero accusam magna tempor aliquyam. Dolore placerat magna labore amet voluptua dolor. Ipsum et no nulla erat. Ea sed lorem suscipit takimata in tincidunt sea dolore sea autem ut. Diam ut sadipscing ipsum esse duo suscipit consetetur kasd vero dolor lorem sit iusto stet amet. Sed eos erat nonumy ut sit ut amet aliquyam vero ipsum. Amet lorem voluptua aliquyam dolor dolores kasd ut sit. Nihil aliquyam gubergren cum lorem sea sit et ut wisi eum eos feugiat eos. Vero sadipscing nonumy takimata sea suscipit consetetur. Velit ea et et et ipsum est ut et erat. Id feugait erat lorem elitr consetetur consetetur vero justo eleifend sea lobortis eos et et vero. Eos zzril sadipscing tempor cum at possim molestie wisi. Gubergren voluptua aliquyam no vero magna diam. Dolores augue sadipscing eu delenit vel. Lorem kasd eum tempor ipsum ipsum dolor sit dolor erat sed sadipscing ut diam dolor magna erat. Tation molestie justo no stet labore tempor ad in et. Labore nostrud dolores sit lorem stet praesent sea consetetur. Iusto takimata voluptua dolore sit illum tincidunt consetetur eirmod lorem nonumy."
     #video_file_path = r"video.avi"
     motion_blocks = encode_dtc_psyschovisual(video_file_path, message, string_flag=True, flag_delete_dirs=False)
     

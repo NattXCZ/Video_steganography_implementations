@@ -52,7 +52,7 @@ def encode_bch_dwt(orig_video_path, message_path, xor_key,  string_flag = False,
         vid_utils.rgb2yuv(image_name)
     
     
-    codew_p_frame, codew_p_last_frame =  distribution_of_bits_between_frames(message_len,vid_properties["frames"], bch_num)
+    codew_p_frame, codew_p_last_frame =  vid_utils.distribution_of_bits_between_frames(message_len,vid_properties["frames"], bch_num)
     
     
     zero_key = False
@@ -405,16 +405,6 @@ def fill_end_zeros(array, num):
         adjusted_array = np.pad(array, (0, num_zeros), mode='constant', constant_values=0)
 
         return adjusted_array
-
-
-def distribution_of_bits_between_frames(len_message, frame_count, num):
-    codew_in_msg = ceil(len_message / num)
-    codew_p_frame = codew_in_msg // frame_count
-    tail = codew_in_msg - (codew_p_frame * frame_count) 
-    
-    return codew_p_frame, codew_p_frame + tail
-
-
 
 
 def ret_properties(video_path):
