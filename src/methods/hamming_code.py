@@ -8,6 +8,9 @@ from src.utils import binary_utils as bnr
 from src.utils import video_processing_utils as vid_utils
 
 
+from subprocess import run ,call ,STDOUT ,PIPE
+
+
 #!tohle je verze bez row a col
 
 
@@ -215,6 +218,7 @@ def hamming_encode(orig_video_path, message_path, shift_key, col_key, row_key,xo
         return 0, codew_p_last_frame
 
     return codew_p_frame, codew_p_last_frame
+    #! musi vracet delku skrz kodovani a nbeo dva klice
     
     
 
@@ -449,3 +453,13 @@ def ret_properties(video_path):
     capture.release()
     
     return video_properties
+
+
+
+
+
+
+
+
+
+
