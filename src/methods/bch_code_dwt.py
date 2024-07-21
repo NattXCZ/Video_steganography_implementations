@@ -14,7 +14,7 @@ from galois import BCH
 
 
 #TODO: funguje pro text (v DWT ma nějake chyby) a nefunguje převod na video a zpět - stejný problém jako u LSB
-#FIXME: chyba pri kratke zprave - kdyz je klic1 = 0
+
 float_pairs = (
     (3.60, 0.65),  # Original values
     (3.61, 0.64),
@@ -25,7 +25,7 @@ float_pairs = (
     (3.57, 0.68),
     (3.64, 0.61)
 )
-def encode_bch_dwt(orig_video_path, message_path, xor_key,  string_flag = False, flag_delete_dirs = True, bch_num = 11):
+def encode_bch_dwt(orig_video_path, message_path, xor_key, bch_num = 11):
 
     bch = BCH(15,bch_num)
     
@@ -177,8 +177,7 @@ def encode_bch_dwt(orig_video_path, message_path, xor_key,  string_flag = False,
     vid_utils.reconstruct_video_from_rgb_frames(orig_video_path,vid_properties)
     
 
-    if flag_delete_dirs:
-        vid_utils.remove_dirs()
+    vid_utils.remove_dirs()
         
     
     print(f"[INFO] embedding finished")
@@ -190,7 +189,7 @@ def encode_bch_dwt(orig_video_path, message_path, xor_key,  string_flag = False,
 
 
 
-def decode_bch_dwt(stego_video_path, codew_p_frame, codew_p_last_frame, xor_key, output_path, string_flag = False, flag_recostr_vid = True, bch_num = 11):
+def decode_bch_dwt(stego_video_path, codew_p_frame, codew_p_last_frame, xor_key, bch_num = 11, write_file = False):
     bch = BCH(15,bch_num)
 
     decoded_message = []
@@ -206,17 +205,16 @@ def decode_bch_dwt(stego_video_path, codew_p_frame, codew_p_last_frame, xor_key,
         actual_max_codew = codew_p_frame
 
 
-    if flag_recostr_vid:
-        vid_properties = vid_utils.video_to_rgb_frames(stego_video_path)
+
+    vid_properties = vid_utils.video_to_rgb_frames(stego_video_path)
         
-        vid_utils.create_dirs()
+    vid_utils.create_dirs()
             
-        # Etracting and saving Y,U,V components    
-        for i in range(1, int(vid_properties["frames"]) + 1):
-            image_name = f"frame_{i}.png"
-            vid_utils.rgb2yuv(image_name)
-    else:
-        vid_properties = ret_properties(stego_video_path)
+    # Etracting and saving Y,U,V components    
+    for i in range(1, int(vid_properties["frames"]) + 1):
+        image_name = f"frame_{i}.png"
+        vid_utils.rgb2yuv(image_name)
+
     
     
     for curr_frame in range(1, int(vid_properties["frames"]) + 1):
@@ -314,8 +312,14 @@ def decode_bch_dwt(stego_video_path, codew_p_frame, codew_p_last_frame, xor_key,
     output_message = output_message[:-diff]
 
     message = bnr.binary_array_to_string(output_message)
+    
+    
+    if write_file:
+        output_path = "decoded_message.txt"
+        write_message_to_file(message,output_path)
+        print(f"[INFO] saved decoded message as {output_path}")
 
-    #vid_utils.remove_dirs()
+    vid_utils.remove_dirs()
     
     return message
 
@@ -407,29 +411,58 @@ def fill_end_zeros(array, num):
         return adjusted_array
 
 
-def ret_properties(video_path):
-    capture = cv2.VideoCapture(video_path)
-    if not capture.isOpened():
-        print("Error: Video file cannot be opened!")
-        return
-
-    # Get video properties before processing frames
-    video_properties = {
-        "format": capture.get(cv2.CAP_PROP_FORMAT),
-        "codec": capture.get(cv2.CAP_PROP_FOURCC),
-        "container": capture.get(cv2.CAP_PROP_POS_AVI_RATIO),
-        "fps": capture.get(cv2.CAP_PROP_FPS),
-        "frames": capture.get(cv2.CAP_PROP_FRAME_COUNT),
-        "width": int(capture.get(cv2.CAP_PROP_FRAME_WIDTH)),
-        "height": int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT)),
-    }
-    capture.release()
-    
-    return video_properties
-
 
 #write message string
 def write_message_to_file(message, filename):
     with open(filename, 'w', encoding='utf-8') as file:
         file.write(message)
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def string_test():
+    xor_key =  np.array([1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1])
+    message = "Amet molestie ea diam et sadipscing vero ipsum in dolore et. Vero lorem sea vel nulla feugiat vero ea. Gubergren dolor labore tempor sanctus amet illum amet no erat. Dolor feugait ea kasd euismod clita est. Voluptua at aliquyam vero vulputate minim. Quod et sit takimata sit placerat sanctus takimata dolor eum magna dolor diam luptatum eos ipsum diam sit. Stet sed ipsum dolor kasd et at erat nonumy rebum erat ipsum nulla quod et dolor aliquyam ipsum. Dolores takimata takimata commodo dolore ipsum consetetur dolor sed magna iusto. Accusam laoreet duo congue clita et euismod ut et accusam. Dolores sadipscing odio ut sit dolor minim nulla sadipscing at takimata vel clita tincidunt. Aliquam dolores amet ad dolor ipsum invidunt dolor diam eros magna consetetur duo doming lorem volutpat ipsum aliquyam consetetur. Suscipit stet magna te amet erat ex at duo ea tempor est vero dolore est sea ut sanctus. Ipsum magna te stet sanctus ipsum takimata stet justo nonumy erat sea suscipit duo. Diam tation dolor diam luptatum sit ut takimata illum clita eirmod voluptua. Lobortis sanctus eum."
+    #message = "Lorem ipsum dolor sit amet tempor consequat et sit dolore dolores vero ut et nisl eros ipsum no ipsum."
+    num = 5
+    
+    vid_path = r"data_testing\input_video.mp4"
+    codew_p_frame,codew_p_last_frame = encode_bch_dwt(vid_path, message, xor_key, bch_num=num)
+
+    vid_sec = r"video.avi"
+    outp_path = r"decoded.txt"
+    
+    #codew_p_frame = 1
+    #codew_p_last_frame = 1 
+    
+    print(codew_p_frame, codew_p_last_frame)
+    message_Dec = decode_bch_dwt(vid_sec, codew_p_frame,codew_p_last_frame, xor_key, bch_num=num)
+
+    print(message_Dec)
+
+if __name__ == "__main__":
+    string_test()
+
+    
+
+ 
+    

@@ -136,9 +136,7 @@ class SteganographyApp:
             self.key3_entry = tk.Entry(self.additional_options_frame, font=("Arial", 14), width=50, validate="key", validatecommand=(validate_numeric, '%P'))
             self.key3_entry.pack()
             
-            self.shuffle_var = tk.BooleanVar()
-            tk.Checkbutton(self.additional_options_frame, text="Zamíchat", variable=self.shuffle_var, font=("Arial", 14)).pack()
-        
+
         elif selected_method == "DWT - BCH codes":
             """tk.Label(self.additional_options_frame, text="XOR Klíč (15 bitů):", font=("Arial", 14)).pack()
             self.xor_key_entry = tk.Entry(self.additional_options_frame, font=("Arial", 14), width=50, validate="key", validatecommand=(validate_numeric, '%P'))
@@ -207,8 +205,8 @@ class SteganographyApp:
             self.message_length_entry = tk.Entry(self.additional_options_frame, font=("Arial", 14), width=50, validate="key", validatecommand=(validate_numeric, '%P'))
             self.message_length_entry.pack()
             
-            self.shuffle_var = tk.BooleanVar()
-            tk.Checkbutton(self.additional_options_frame, text="Zamíchat", variable=self.shuffle_var, font=("Arial", 14)).pack()
+            self.write_var = tk.BooleanVar()
+            tk.Checkbutton(self.additional_options_frame, text="Uložit dekódovanou zprávu jako textový soubor", variable=self.write_var, font=("Arial", 14)).pack()
         
         elif selected_method == "DWT - BCH codes":
             tk.Label(self.additional_options_frame, text="XOR Klíč (15 bitů):", font=("Arial", 14)).pack()
@@ -227,6 +225,11 @@ class SteganographyApp:
             self.bch_code_var = tk.StringVar()
             self.bch_code_combobox = ttk.Combobox(self.additional_options_frame, textvariable=self.bch_code_var, font=("Arial", 14), values=[5, 7, 11], state='readonly')
             self.bch_code_combobox.pack()
+            
+            
+            self.write_var = tk.BooleanVar()
+            tk.Checkbutton(self.additional_options_frame, text="Uložit dekódovanou zprávu jako textový soubor", variable=self.write_var, font=("Arial", 14)).pack()
+        
 
     def clear_window(self):
         for widget in self.master.winfo_children():
@@ -256,14 +259,13 @@ class SteganographyApp:
                 key1 = self.key1_entry.get()
                 key2 = self.key2_entry.get()
                 key3 = self.key3_entry.get()
-                shuffle = self.shuffle_var.get()
                 
                 
                 
                 xor_random_key = np.random.randint(0, 2, size=7)
     
                 try:
-                    len_msg = hmc.hamming_encode(video_path, message, int(key1), int(key2), int(key3), xor_random_key , string_flag=True, shuffle_flag=shuffle, flag_delete_dirs=recontructed_vid)
+                    len_msg = hmc.hamming_encode(video_path, message, int(key1), int(key2), int(key3), xor_random_key )
                     self.master.after(0, lambda: self.show_encode_result("LSB - Hamming code (7,4)", len_msg, key1, key2, key3, ''.join(map(str, xor_random_key))))
             
                 except ValueError as e:
@@ -283,7 +285,7 @@ class SteganographyApp:
                 
                 
                 try:
-                    codew_p_frame, codew_p_last_frame = bch_dwt.encode_bch_dwt(video_path, message, xor_random_key, flag_delete_dirs=False, string_flag=True, bch_num=int(bch_code))
+                    codew_p_frame, codew_p_last_frame = bch_dwt.encode_bch_dwt(video_path, message, xor_random_key, bch_num=int(bch_code))
                     self.master.after(0, lambda: self.show_encode_result("DWT - BCH codes", ''.join(map(str, xor_random_key)), codew_p_frame, codew_p_last_frame))
             
                 except ValueError as e:
@@ -319,7 +321,8 @@ class SteganographyApp:
                 key2 = self.key2_entry.get()
                 key3 = self.key3_entry.get()
                 message_length = self.message_length_entry.get()
-                shuffle = self.shuffle_var.get()
+                
+                write_val = self.write_var.get()
                 
                 if len(xor_key) != 7 or not all(bit in '01' for bit in xor_key):
                     messagebox.showerror("Chyba", "XOR klíč musí být 7bitové binární číslo (pouze 0 a 1)")
@@ -329,8 +332,7 @@ class SteganographyApp:
                 xor_key_arr = np.array([int(bit) for bit in xor_key])
                 
                 
-                decoded_message = hmc.hamming_decode(video_path, int(key1), int(key2), int(key3), int(message_length), "",xor_key_arr, string_flag=True, shuffle_flag=shuffle, flag_recostr_vid=recontructed_vid)
-                
+                decoded_message = hmc.hamming_decode(video_path, int(key1), int(key2), int(key3), int(message_length),xor_key_arr,write_file = write_val)
                 self.master.after(0, lambda: self.show_decode_result(decoded_message))
             
             elif method == "DWT - BCH codes":
@@ -338,6 +340,7 @@ class SteganographyApp:
                 key1 = self.key1_entry.get()
                 key2 = self.key2_entry.get()
                 bch_code = self.bch_code_var.get()
+                write_val = self.write_var.get()
                 
                 if len(xor_key) != 15 or not all(bit in '01' for bit in xor_key):
                     messagebox.showerror("Chyba", "XOR klíč musí být 15bitové binární číslo (pouze 0 a 1)")
@@ -347,7 +350,7 @@ class SteganographyApp:
                 xor_key_arr = np.array([int(bit) for bit in xor_key])
     
                 
-                decoded_message = bch_dwt.decode_bch_dwt(video_path, int(key1), int(key2), xor_key_arr, "", flag_recostr_vid=False, string_flag=True, bch_num=int(bch_code))
+                decoded_message = bch_dwt.decode_bch_dwt(video_path, int(key1), int(key2), xor_key_arr, bch_num=int(bch_code), write_file = write_val)
                 
                 self.master.after(0, lambda: self.show_decode_result(decoded_message))
             
