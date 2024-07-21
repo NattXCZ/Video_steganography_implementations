@@ -7,8 +7,6 @@ import cv2
 import numpy as np
 
 
-#TODO: mozna zkusit ukladat misto v .png tak v .avif
-
 
 temporal_folder = "./tmp"
 y_folder = "./tmp/Y"
@@ -170,8 +168,11 @@ def video_to_yuv_frames(video_path):
     return video_properties
 
 
-def reconstruct_video_from_rgb_frames(file_path, properties, ffmpeg_path = r".\src\utils\ffmpeg.exe"):
+def reconstruct_video_from_rgb_frames_old(file_path, properties, ffmpeg_path = r".\src\utils\ffmpeg.exe"):
     """Reconstruct video from RGB frames with ffmpeg."""
+    
+    #*opravovalo videa s chybama v pixelech
+    
     fps = properties["fps"]
     codec =  decode_fourcc(properties["codec"])
     #file_extension =  file_path.rsplit(".", 1)[1]
@@ -409,3 +410,46 @@ def distribution_of_bits_between_frames(len_message, frame_count, n):
 
 
 
+
+
+
+
+def reconstruct_video_from_rgb_frames(file_path, properties, ffmpeg_path = r".\src\utils\ffmpeg.exe"):
+    """Reconstruct video from RGB frames with ffmpeg."""
+    fps = properties["fps"]
+    codec =  decode_fourcc(properties["codec"])
+    #file_extension =  file_path.rsplit(".", 1)[1]
+    file_extension = "avi"
+    bitrate = get_vid_stream_bitrate(file_path)
+
+    if has_audio_track(file_path):
+        #extract audio stream from video
+        extract_audio_track(file_path)
+        
+        #recreate video from frames (without audio)
+        call(["ffmpeg", "-r", str(fps), "-i", "frames/frame_%d.png", 
+          "-vcodec", "ffv1", 
+          "-level", "3", 
+          "-coder", "1", 
+          "-context", "1", 
+          "-g", "1", 
+          "-pix_fmt", "bgr24",
+          "-color_range", "pc",
+          "tmp/video.avi", "-y"])
+        #add audio to a recreated video
+        call([ffmpeg_path, "-i", f"tmp/video.{file_extension}", "-i", "tmp/audio.wav","-q:v", "1", "-codec", "copy", f"video.{file_extension}", "-y"])
+   
+    else:
+        #recreate video from frames (without audio)
+        call(["ffmpeg", "-r", str(fps), "-i", "frames/frame_%d.png", 
+                "-vcodec", "ffv1", 
+                "-level", "3", 
+                "-coder", "1", 
+                "-context", "1", 
+                "-g", "1", 
+                "-pix_fmt", "bgr24",
+                "-color_range", "pc",
+                "video.avi", "-y"])
+        
+    print("[INFO] reconstruction is finished")
+    
