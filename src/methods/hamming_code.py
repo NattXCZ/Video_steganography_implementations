@@ -11,7 +11,7 @@ from src.utils import video_processing_utils as vid_utils
 from subprocess import run ,call ,STDOUT ,PIPE
 
 
-#!cista verze nejlepsi (nema row a col)
+
 
 ######################################################################################################
 # A Highly Secure Video Steganography using Hamming Code (7, 4)
@@ -81,6 +81,7 @@ def hamming_encode(orig_video_path, message_path, shift_key, col_key, row_key, x
         actual_max_codew = 1
         zero_key = True
     else:
+        #!proc je to dvakrat
         actual_max_codew = codew_p_frame
     
     
@@ -89,9 +90,7 @@ def hamming_encode(orig_video_path, message_path, shift_key, col_key, row_key, x
     if codew_p_frame > max_codew_p_frame:
         print("[INFO] Message is too large to embed")
         return
-    
-    actual_max_codew = codew_p_frame
-    
+
     
     #* Encode each 4-bit block of the message using a Hamming (7, 4) code.
     row = 0
