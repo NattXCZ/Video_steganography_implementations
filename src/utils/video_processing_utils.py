@@ -6,7 +6,7 @@ from math import ceil
 import cv2
 import numpy as np
 
-
+#!Incompatible pixel format 'bgr24' for codec 'ffv1', auto-selecting format 'bgr0'
 
 temporal_folder = "./tmp"
 y_folder = "./tmp/Y"

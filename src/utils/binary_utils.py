@@ -55,3 +55,12 @@ def check_EOT_sequence(message):
     sequence = np.array([1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0])
     return np.array_equal(message[-48:], sequence)
 
+def fill_end_zeros(array, num):
+    length = len(array)
+    if len(array) % num == 0:
+        return array
+    else:
+        num_zeros = num - (length % num)
+        adjusted_array = np.pad(array, (0, num_zeros), mode='constant', constant_values=0)
+
+        return adjusted_array
