@@ -1,84 +1,61 @@
-
-    
-        
-import os
-
 import numpy as np
 import cv2
 import pywt
-from math import floor, ceil
+from math import floor
 
 from src.utils import video_processing_utils as vid_utils
 from src.utils import binary_utils as bnr
+from src.utils import string_utils
 from galois import BCH
 
-
-#TODO: funguje pro text (v DWT ma nějake chyby) a nefunguje převod na video a zpět - stejný problém jako u LSB
-
-float_pairs = (
-    (3.60, 0.65),  # Original values
-    (3.61, 0.64),
-    (3.59, 0.66),
-    (3.62, 0.63),
-    (3.58, 0.67),
-    (3.63, 0.62),
-    (3.57, 0.68),
-    (3.64, 0.61)
+FLOAT_PAIRS = (
+    (3.60, 0.65), (3.61, 0.64), (3.59, 0.66), (3.62, 0.63),
+    (3.58, 0.67), (3.63, 0.62), (3.57, 0.68), (3.64, 0.61)
 )
-def encode_bch_dwt(orig_video_path, message_path, xor_key, bch_num = 11):
 
-    bch = BCH(15,bch_num)
+def encode_bch_dwt(orig_video_path, message_path, xor_key, bch_num=11):
+    """
+    Encode a message into a video using BCH coding and DWT.
+
+    Args:
+        orig_video_path (str): Path to the original video.
+        message_path (str): Path to the message file.
+        xor_key (np.array): XOR key for encoding.
+        bch_num (int): BCH parameter. Default is 11.
+
+    Returns:
+        tuple: Number of codewords per frame and in the last frame.
+    """
+    bch = BCH(15, bch_num)
     
-
-    # Processing input message. Convert the secret information to a 1-D array, and after that change the position of  the entire message using chaotic algorithm 
-
     bin_arr = bnr.string_to_binary_array(message_path)
-
-
-
-    # make message bits chaotic
-    arr = process_binary_array(bin_arr)
-    chaos_arr = fill_end_zeros(arr, bch_num)
+    chaos_arr = process_binary_array(bin_arr)
+    chaos_arr = bnr.fill_end_zeros(chaos_arr, bch_num)
     message_len = len(chaos_arr)
 
-
-    #Extract frames in RGB. Every RGB frame is split into the YUV colour space.
     vid_properties = vid_utils.video_to_rgb_frames(orig_video_path)
     vid_utils.create_dirs()
     
-    # extracting and saving Y,U,V components    
     for i in range(1, int(vid_properties["frames"]) + 1):
-        image_name = f"frame_{i}.png"
-        vid_utils.rgb2yuv(image_name)
+        vid_utils.rgb2yuv(f"frame_{i}.png")
     
+    codew_p_frame, codew_p_last_frame = vid_utils.distribution_of_bits_between_frames(
+        message_len, vid_properties["frames"], bch_num
+    )
     
-    codew_p_frame, codew_p_last_frame =  vid_utils.distribution_of_bits_between_frames(message_len,vid_properties["frames"], bch_num)
-    
-    
-    zero_key = False
-    if codew_p_frame == 0:
-        actual_max_codew = 1
-        zero_key = True
-    else:
-        actual_max_codew = codew_p_frame
-    
-    
+    actual_max_codew = 1 if codew_p_frame == 0 else codew_p_frame
+    zero_key = codew_p_frame == 0
     
     embedded_codewords_per_frame = 0
-        
     row = 0
     col = 0
     curr_frame = 1
     
     for i in range(0, len(chaos_arr), bch_num):
         msg_bits = chaos_arr[i:i+bch_num]
-        
-        codeword = bch.encode(msg_bits)
-        
-        codeword = codeword ^ xor_key 
+        codeword = bch.encode(msg_bits) ^ xor_key
 
         if embedded_codewords_per_frame == 0:
-
             y_component_path = f"./tmp/Y/frame_{curr_frame}.png"
             u_component_path = f"./tmp/U/frame_{curr_frame}.png"
             v_component_path = f"./tmp/V/frame_{curr_frame}.png"
@@ -86,13 +63,11 @@ def encode_bch_dwt(orig_video_path, message_path, xor_key, bch_num = 11):
             y_frame = cv2.imread(y_component_path, cv2.IMREAD_GRAYSCALE)
             u_frame = cv2.imread(u_component_path, cv2.IMREAD_GRAYSCALE)
             v_frame = cv2.imread(v_component_path, cv2.IMREAD_GRAYSCALE)
-            
-            # Apply 2D-DWT to U, V, and Y components
+
             coeffs_Y = pywt.dwt2(y_frame, 'haar')
             coeffs_U = pywt.dwt2(u_frame, 'haar')
             coeffs_V = pywt.dwt2(v_frame, 'haar')
             
-            # Extract HH, HL, LH subbands
             LL_Y, (LH_Y, HL_Y, HH_Y) = coeffs_Y
             LL_U, (LH_U, HL_U, HH_U) = coeffs_U
             LL_V, (LH_V, HL_V, HH_V) = coeffs_V
@@ -101,7 +76,7 @@ def encode_bch_dwt(orig_video_path, message_path, xor_key, bch_num = 11):
             col = 0
             
             if i == 0:
-                height , width = LL_Y.shape
+                height, width = LL_Y.shape
         
         LH_Y_bin = format(floor(abs(LH_Y[row, col] + 0.0000001)), '#010b')
         HL_Y_bin = format(floor(abs(HL_Y[row, col] + 0.0000001 )), '#010b')
@@ -115,7 +90,6 @@ def encode_bch_dwt(orig_video_path, message_path, xor_key, bch_num = 11):
         HL_V_bin = format(floor(abs(HL_V[row, col] + 0.0000001)), '#010b')
         HH_V_bin = format(floor(abs(HH_V[row, col] + 0.0000001)), '#010b')
         
-
         LH_Y[row, col] = int(LH_Y_bin[:-3] + ''.join(str(bit) for bit in codeword[:3]), 2)
         HL_Y[row, col] = int(HL_Y_bin[:-3] + ''.join(str(bit) for bit in codeword[3:6]), 2)
         HH_Y[row, col] = int(HH_Y_bin[:-3] + ''.join(str(bit) for bit in codeword[6:9]), 2)
@@ -127,10 +101,8 @@ def encode_bch_dwt(orig_video_path, message_path, xor_key, bch_num = 11):
         LH_V[row, col] = int(LH_V_bin[:-1] + str(codeword[12]), 2)
         HL_V[row, col] = int(HL_V_bin[:-1] + str(codeword[13]), 2)
         HH_V[row, col] = int(HH_V_bin[:-1] + str(codeword[14]), 2)
-        
 
         embedded_codewords_per_frame += 1 
-        
         col += 1
 
         if col >= width: 
@@ -138,7 +110,6 @@ def encode_bch_dwt(orig_video_path, message_path, xor_key, bch_num = 11):
             row += 1
             
         if embedded_codewords_per_frame >= actual_max_codew:
-
             embedded_codewords_per_frame = 0
             
             HH_Y = HH_Y.reshape(LL_Y.shape)
@@ -153,7 +124,6 @@ def encode_bch_dwt(orig_video_path, message_path, xor_key, bch_num = 11):
             HL_V = HL_V.reshape(LL_V.shape)
             LH_V = LH_V.reshape(LL_V.shape)
             
-            # Reconstruct frames using inverse DWT
             Y_new = pywt.idwt2((LL_Y, (LH_Y, HL_Y, HH_Y)), 'haar')
             U_new = pywt.idwt2((LL_U, (LH_U, HL_U, HH_U)), 'haar')
             V_new = pywt.idwt2((LL_V, (LH_V, HL_V, HH_V)), 'haar')
@@ -161,42 +131,46 @@ def encode_bch_dwt(orig_video_path, message_path, xor_key, bch_num = 11):
             cv2.imwrite(y_component_path, Y_new)
             cv2.imwrite(u_component_path, U_new)
             cv2.imwrite(v_component_path, V_new)
-                
+            
             curr_frame += 1
             if curr_frame == vid_properties["frames"]:
                 actual_max_codew = codew_p_last_frame
 
-        
-    print(f"[INFO] encoded to frames")
+    print("[INFO] message is encoded to frames")
     
-
     for i in range(1, int(vid_properties["frames"]) + 1):
-        image_name = f"frame_{i}.png"
-        vid_utils.yuv2rgb(image_name)
+        vid_utils.yuv2rgb(f"frame_{i}.png")
         
-    vid_utils.reconstruct_video_from_rgb_frames(orig_video_path,vid_properties)
-    
-
+    vid_utils.reconstruct_video_from_rgb_frames(orig_video_path, vid_properties)
     vid_utils.remove_dirs()
-        
     
-    print(f"[INFO] embedding finished")
+    print("[INFO] embedding finished")
     
     if zero_key:
         return 0, codew_p_last_frame
-
     return codew_p_frame, codew_p_last_frame
 
 
+def decode_bch_dwt(stego_video_path, codew_p_frame, codew_p_last_frame, xor_key, bch_num=11, write_file=False):
+    """
+    Decode a message from a video using BCH coding and DWT.
 
-def decode_bch_dwt(stego_video_path, codew_p_frame, codew_p_last_frame, xor_key, bch_num = 11, write_file = False):
-    bch = BCH(15,bch_num)
+    Args:
+        stego_video_path (str): Path to the stego video.
+        codew_p_frame (int): Number of codewords per frame.
+        codew_p_last_frame (int): Number of codewords in the last frame.
+        xor_key (np.array): XOR key for decoding.
+        bch_num (int): BCH parameter. Default is 11.
+        write_file (bool): Whether to write the decoded message to a file.
 
+    Returns:
+        str: Decoded message.
+    """
+    bch = BCH(15, bch_num)
     decoded_message = []
     codeword_chaos =  np.zeros(15, dtype = np.uint8)
     decoded_codeword = np.zeros(bch_num, dtype = np.uint8)
     
-
     zero_key = False
     if codew_p_frame == 0:
         actual_max_codew = 1
@@ -204,23 +178,15 @@ def decode_bch_dwt(stego_video_path, codew_p_frame, codew_p_last_frame, xor_key,
     else:
         actual_max_codew = codew_p_frame
 
-
-
     vid_properties = vid_utils.video_to_rgb_frames(stego_video_path)
-        
     vid_utils.create_dirs()
-            
-    # Etracting and saving Y,U,V components    
+   
     for i in range(1, int(vid_properties["frames"]) + 1):
-        image_name = f"frame_{i}.png"
-        vid_utils.rgb2yuv(image_name)
+        vid_utils.rgb2yuv(f"frame_{i}.png")
 
-    
-    
     for curr_frame in range(1, int(vid_properties["frames"]) + 1):
         embedded_codewords = 0
 
-        #load new frame
         y_component_path = f"./tmp/Y/frame_{curr_frame}.png"
         u_component_path = f"./tmp/U/frame_{curr_frame}.png"
         v_component_path = f"./tmp/V/frame_{curr_frame}.png"
@@ -229,12 +195,10 @@ def decode_bch_dwt(stego_video_path, codew_p_frame, codew_p_last_frame, xor_key,
         u_frame = cv2.imread(u_component_path, cv2.IMREAD_GRAYSCALE)
         v_frame = cv2.imread(v_component_path, cv2.IMREAD_GRAYSCALE)
         
-        # Apply 2D-DWT to U, V, and Y components
         coeffs_Y = pywt.dwt2(y_frame, 'haar')
         coeffs_U = pywt.dwt2(u_frame, 'haar')
         coeffs_V = pywt.dwt2(v_frame, 'haar')
             
-        # Extract HH, HL, LH subbands
         LL_Y, (LH_Y, HL_Y, HH_Y) = coeffs_Y
         LL_U, (LH_U, HL_U, HH_U) = coeffs_U
         LL_V, (LH_V, HL_V, HH_V) = coeffs_V
@@ -248,17 +212,14 @@ def decode_bch_dwt(stego_video_path, codew_p_frame, codew_p_last_frame, xor_key,
         stop_loop = False
 
         for row in range(height):
-
             if stop_loop:
                 break
             
             for col in range(width):
-
                 if embedded_codewords >= actual_max_codew: 
                     stop_loop = True
                     break
                 
-                #* Obtain the encoded data from the YUV components and XOR with the random number using the same key that was used in the sender side.
                 LH_Y_bin = format(floor(abs(LH_Y[row, col] + 0.0000001)), '#010b')
                 HL_Y_bin = format(floor(abs(HL_Y[row, col] + 0.0000001)), '#010b')
                 HH_Y_bin = format(floor(abs(HH_Y[row, col] + 0.0000001)), '#010b')
@@ -292,75 +253,58 @@ def decode_bch_dwt(stego_video_path, codew_p_frame, codew_p_last_frame, xor_key,
                 codeword_chaos[13] = HL_V_bin[-1]
                 codeword_chaos[14] = HH_V_bin[-1]
                 
-                codeword = codeword_chaos ^ xor_key           #2x times XOR returns original codeword
-                #codeword = codeword_chaos
-
+                codeword = codeword_chaos ^ xor_key
                 decoded_codeword = bch.decode(codeword)
                 decoded_message.extend(decoded_codeword)
                 
                 embedded_codewords += 1
                 
-        #end of proceesing current frame
         if zero_key and codew_p_last_frame == curr_frame:
             break
 
     output_message = process_binary_array(np.array(decoded_message), False)
-
-
-
-    diff = bch_num - (len(output_message) % bch_num)
-    output_message = output_message[:-diff]
-
     message = bnr.binary_array_to_string(output_message)
     
-    
     if write_file:
-        output_path = "decoded_message.txt"
-        write_message_to_file(message,output_path)
-        print(f"[INFO] saved decoded message as {output_path}")
+        string_utils.write_message_to_file(message,"decoded_message.txt")
+        print("[INFO] saved decoded message as decoded_message.txt")
 
     vid_utils.remove_dirs()
-    
     return message
 
 
-########################### LOGISTIC MAPPING ###########################
 def logistic_key(N, mu, x0):
+    """Generate a logistic key sequence."""
     X = np.zeros(N)
     X[0] = mu * x0 * (1 - x0) 
-    #X[0] =round(abs(mu * x0 * (1 - x0)), 4)
     for k in range(1, N):
         X[k] = mu * X[k-1] * (1 - X[k-1])
     return X
-   
-            
+
+
 def create_B(logistic_seq):
+    """Create a binary sequence from a logistic sequence."""
     T = np.mean(logistic_seq)
-    B = np.array([1 if x >= T else 0 for x in logistic_seq], dtype=np.uint8)
-    return B
+    return np.array([1 if x >= T else 0 for x in logistic_seq], dtype=np.uint8)
 
 
 def process_part_component(binary_array, chaos_array, start_index, end_index, B):
     k = 0
     for i in range(start_index, end_index):
         C = binary_array[i]
-        #B_val = 255 if B[k] == 1 else B[k]
         B_val = B[k]
         chaos_array[i] = C  ^ B_val
-            
         k += 1
             
     return chaos_array
 
 
 def process_binary_array(binary_array, encode = True):
-    """Processes a 1D binary array by splitting it into 8 equal parts and adding process each part."""
+    """Process a binary array using logistic mapping."""
     original_length = len(binary_array)
     
-    # Check if the length of the array is divisible by 8
     if encode:
         if original_length % 8 != 0:
-            # Calculate how many zeros need to be added
             padding_length = 8 - (original_length % 8)
             binary_array = np.append(binary_array, np.zeros(padding_length, dtype=np.uint8))
     else:
@@ -371,98 +315,15 @@ def process_binary_array(binary_array, encode = True):
             
         
     segment_length = len(binary_array) // 8
-    
     chaos_array =  np.zeros_like(binary_array, dtype=np.uint8)
     
     i = 0
-    for float_pair in float_pairs:
+    for float_pair in FLOAT_PAIRS:
         start_index = i * segment_length
         end_index = start_index + segment_length
         
         generatedKey = logistic_key(segment_length, float_pair[0], float_pair[1])
         process_part_component(binary_array, chaos_array, start_index, end_index, create_B(generatedKey))
-        
         i += 1
 
     return chaos_array
-
-
-def check_11(st) :
-    n = len(st) 
-    
-    odd_sum = 0
-    even_sum = 0
-    for i in range(0,n) :
-        if (i % 2 == 0) :
-            odd_sum = odd_sum + ((int)(st[i]))
-        else:
-            even_sum = even_sum + ((int)(st[i]))
-     
-    return ((odd_sum - even_sum) % 11 == 0)
-
-def fill_end_zeros(array, num):
-    length = len(array)
-    if len(array) % num == 0:
-        return array
-    else:
-        num_zeros = num - (length % num)
-        adjusted_array = np.pad(array, (0, num_zeros), mode='constant', constant_values=0)
-
-        return adjusted_array
-
-
-
-#write message string
-def write_message_to_file(message, filename):
-    with open(filename, 'w', encoding='utf-8') as file:
-        file.write(message)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-def string_test():
-    xor_key =  np.array([1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1])
-    message = "Amet molestie ea diam et sadipscing vero ipsum in dolore et. Vero lorem sea vel nulla feugiat vero ea. Gubergren dolor labore tempor sanctus amet illum amet no erat. Dolor feugait ea kasd euismod clita est. Voluptua at aliquyam vero vulputate minim. Quod et sit takimata sit placerat sanctus takimata dolor eum magna dolor diam luptatum eos ipsum diam sit. Stet sed ipsum dolor kasd et at erat nonumy rebum erat ipsum nulla quod et dolor aliquyam ipsum. Dolores takimata takimata commodo dolore ipsum consetetur dolor sed magna iusto. Accusam laoreet duo congue clita et euismod ut et accusam. Dolores sadipscing odio ut sit dolor minim nulla sadipscing at takimata vel clita tincidunt. Aliquam dolores amet ad dolor ipsum invidunt dolor diam eros magna consetetur duo doming lorem volutpat ipsum aliquyam consetetur. Suscipit stet magna te amet erat ex at duo ea tempor est vero dolore est sea ut sanctus. Ipsum magna te stet sanctus ipsum takimata stet justo nonumy erat sea suscipit duo. Diam tation dolor diam luptatum sit ut takimata illum clita eirmod voluptua. Lobortis sanctus eum."
-    #message = "Lorem ipsum dolor sit amet tempor consequat et sit dolore dolores vero ut et nisl eros ipsum no ipsum."
-    num = 5
-    
-    vid_path = r"data_testing\input_video.mp4"
-    codew_p_frame,codew_p_last_frame = encode_bch_dwt(vid_path, message, xor_key, bch_num=num)
-
-    vid_sec = r"video.avi"
-    outp_path = r"decoded.txt"
-    
-    #codew_p_frame = 1
-    #codew_p_last_frame = 1 
-    
-    print(codew_p_frame, codew_p_last_frame)
-    message_Dec = decode_bch_dwt(vid_sec, codew_p_frame,codew_p_last_frame, xor_key, bch_num=num)
-
-    print(message_Dec)
-
-if __name__ == "__main__":
-    string_test()
-
-    
-
- 
-    

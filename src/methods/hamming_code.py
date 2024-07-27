@@ -49,7 +49,7 @@ def hamming_encode(orig_video_path, message_path, shift_key, col_key, row_key, x
     max_codew_p_frame = int(vid_properties["height"] * vid_properties["width"] * 0.22)
 
     message = bnr.string_to_binary_array(message_path)
-    message = fill_end_zeros(np.roll(message, shift_key))
+    message = bnr.fill_end_zeros(np.roll(message, shift_key))
 
     codew_p_frame, codew_p_last_frame = vid_utils.distribution_of_bits_between_frames(
         len(message), vid_properties["frames"], 4
