@@ -4,17 +4,16 @@ from tkinter import filedialog, messagebox
 import numpy as np
 import threading
 
-
 from src.methods import hamming_code as hmc
-
 from src.methods import bch_code_dwt as bch_dwt
+from src.methods import dtc_psychovisual as dct_psy
 
-recontructed_vid = False
+
 intro_text = (
         "Tato aplikace umožňuje skrývání zpráv do videí pomocí tří různých metod:\n\n\n"
         "1. LSB s Hamming kódem (7,4) - využívá nejméně významné bity pro skrytí dat a opravuje chyby pomocí Hamming kódu.\n\n"
         "2. DWT s BCH kódy (15, 11) - kombinuje diskrétní vlnkovou transformaci s BCH kódy pro opravu chyb.\n\n"
-        "3. DCT s psychovisuální analýzou - používá diskrétní kosinovou transformaci a psychovizuální model pro určení vhodného místa pro vkládání.\n\n\n"
+        "3. DCT s psychovisuální analýzou - používá diskrétní kosinovou transformaci a psychovizuální model pro určení vhodného místa pro vkládání. Tato metoda je vhodná jen pokud video obsahuje pohybující se objekty.\n\n\n"
         "Vyberte prosím možnost 'Encode' pro skrytí zprávy nebo 'Decode' pro odhalení skryté zprávy."
     )
 
@@ -39,14 +38,13 @@ class LoadingWindow:
         self.progress.stop()
         self.top.destroy()
         
-        
 class SteganographyApp:
     def __init__(self, master):
         self.master = master
         self.master.title("Video steganografie")
         self.master.geometry("700x800")
         
-        self.methods = ["LSB - Hamming code (7,4)", "DWT - BCH codes", "DCT psychovisual  and object motion"]
+        self.methods = ["LSB - Hamming code (7,4)", "DWT - BCH codes", "DCT psychovisual and object motion"]
         self.main_menu()
 
     def main_menu(self):
@@ -64,7 +62,6 @@ class SteganographyApp:
         intro_text_widget.pack(fill=tk.BOTH, expand=True)
         intro_text_widget.insert(tk.END, intro_text)
         intro_text_widget.config(state=tk.DISABLED)
-        
         
         button_frame = tk.Frame(main_frame)
         button_frame.pack()
@@ -136,17 +133,21 @@ class SteganographyApp:
             self.key3_entry = tk.Entry(self.additional_options_frame, font=("Arial", 14), width=50, validate="key", validatecommand=(validate_numeric, '%P'))
             self.key3_entry.pack()
             
-
         elif selected_method == "DWT - BCH codes":
-            """tk.Label(self.additional_options_frame, text="XOR Klíč (15 bitů):", font=("Arial", 14)).pack()
-            self.xor_key_entry = tk.Entry(self.additional_options_frame, font=("Arial", 14), width=50, validate="key", validatecommand=(validate_numeric, '%P'))
-            self.xor_key_entry.pack()"""
-            
             tk.Label(self.additional_options_frame, text="BCH Code:", font=("Arial", 14)).pack()
             self.bch_code_var = tk.StringVar()
             self.bch_code_combobox = ttk.Combobox(self.additional_options_frame, textvariable=self.bch_code_var, font=("Arial", 14), values=[5, 7, 11], state='readonly')
             self.bch_code_combobox.pack()
 
+        elif selected_method == "DCT psychovisual and object motion":
+            """# Frame for selecting motion blocks file
+            motion_blocks_frame = tk.Frame(self.additional_options_frame)
+            motion_blocks_frame.pack(fill=tk.X, pady=10)
+            
+            tk.Button(motion_blocks_frame, text="Vybrat soubor JSON", command=self.select_motion_blocks_file, font=("Arial", 14)).pack(side=tk.RIGHT)
+            self.motion_blocks_path_var = tk.StringVar()
+            tk.Entry(motion_blocks_frame, textvariable=self.motion_blocks_path_var, font=("Arial", 12), width=100, state='readonly').pack(side=tk.LEFT, padx=10)
+            """
     def decode_menu(self):
         self.clear_window()
         
@@ -226,11 +227,29 @@ class SteganographyApp:
             self.bch_code_combobox = ttk.Combobox(self.additional_options_frame, textvariable=self.bch_code_var, font=("Arial", 14), values=[5, 7, 11], state='readonly')
             self.bch_code_combobox.pack()
             
-            
             self.write_var = tk.BooleanVar()
             tk.Checkbutton(self.additional_options_frame, text="Uložit dekódovanou zprávu jako textový soubor", variable=self.write_var, font=("Arial", 14)).pack()
-        
 
+        elif selected_method == "DCT psychovisual and object motion":
+            # Frame for selecting motion blocks file
+            motion_blocks_frame = tk.Frame(self.additional_options_frame)
+            motion_blocks_frame.pack(fill=tk.X, pady=10)
+            
+            tk.Button(motion_blocks_frame, text="Vybrat soubor json", command=self.select_motion_blocks_file, font=("Arial", 14)).pack(side=tk.RIGHT)
+            self.motion_blocks_path_var = tk.StringVar()
+            tk.Entry(motion_blocks_frame, textvariable=self.motion_blocks_path_var, font=("Arial", 12), width=100, state='readonly').pack(side=tk.LEFT, padx=10, fill=tk.X, expand=True)
+
+            tk.Label(self.additional_options_frame, text="Klíč:", font=("Arial", 14)).pack()
+            self.dct_key_entry = tk.Entry(self.additional_options_frame, font=("Arial", 14), width=50)
+            self.dct_key_entry.pack()
+
+
+
+
+            # Add checkbox for saving the result as a text file
+            self.write_var = tk.BooleanVar()
+            tk.Checkbutton(self.additional_options_frame, text="Uložit dekódovanou zprávu jako textový soubor", variable=self.write_var, font=("Arial", 14)).pack()
+    
     def clear_window(self):
         for widget in self.master.winfo_children():
             widget.destroy()
@@ -240,12 +259,16 @@ class SteganographyApp:
         if file_path:
             self.video_path_var.set(file_path)
 
+    def select_motion_blocks_file(self):
+        file_path = filedialog.askopenfilename(filetypes=[("JSON files", "*.json")])
+        if file_path:
+            self.motion_blocks_path_var.set(file_path)
+
     def is_numeric(self, value_if_allowed):
         if value_if_allowed.isdigit() or value_if_allowed == "":
             return True
         else:
             return False
-        
 
     def encode(self):
         method = self.selected_method.get()
@@ -260,12 +283,10 @@ class SteganographyApp:
                 key2 = self.key2_entry.get()
                 key3 = self.key3_entry.get()
                 
-                
-                
                 xor_random_key = np.random.randint(0, 2, size=7)
     
                 try:
-                    len_msg = hmc.hamming_encode(video_path, message, int(key1), int(key2), int(key3), xor_random_key )
+                    len_msg = hmc.hamming_encode(video_path, message, int(key1), int(key2), int(key3), xor_random_key)
                     self.master.after(0, lambda: self.show_encode_result("LSB - Hamming code (7,4)", len_msg, key1, key2, key3, ''.join(map(str, xor_random_key))))
             
                 except ValueError as e:
@@ -273,16 +294,10 @@ class SteganographyApp:
                 except Exception as e:
                     messagebox.showerror("Error", f"An unexpected error occurred: {str(e)}")
                     
-                    
-                
             elif method == "DWT - BCH codes":
-                #xor_key = self.xor_key_entry.get()
                 bch_code = self.bch_code_var.get()
                 
                 xor_random_key = np.random.randint(0, 2, size=15)
-                
-                #xor_key_arr = np.array([1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1])
-                
                 
                 try:
                     codew_p_frame, codew_p_last_frame = bch_dwt.encode_bch_dwt(video_path, message, xor_random_key, bch_num=int(bch_code))
@@ -292,19 +307,29 @@ class SteganographyApp:
                     messagebox.showerror("Error", str(e))
                 except Exception as e:
                     messagebox.showerror("Error", f"An unexpected error occurred: {str(e)}")
+
+            elif method == "DCT psychovisual and object motion":
+                motion_blocks_file = "motion_blocks.json"
+                try:
+                    key = dct_psy.encode_dtc_psyschovisual(video_path, message, motion_blocks_file, False)
+                    self.master.after(0, lambda: self.show_encode_result("DCT psychovisual and object motion", key))
+                except Exception as e:
+                    messagebox.showerror("Error", f"An unexpected error occurred: {str(e)}")
                     
-                
             loading_window.close()
         
         threading.Thread(target=encode_task, daemon=True).start()
 
     def show_encode_result(self, method, *args):
         if method == "LSB - Hamming code (7,4)":
-            len_msg, key1, key2, key3 , xor_key = args
-            messagebox.showinfo("Hotovo", f"Kódování dokončeno\nDélka zprávy: {len_msg} (slouží jako klíč k dekódování)\nklíč1: {int(key1)}\nklíč2: {int(key2)}\nklíč3: {int(key3)}\n XOR klíč: {xor_key}")
+            len_msg, key1, key2, key3, xor_key = args
+            messagebox.showinfo("Hotovo", f"Kódování dokončeno\nDélka zprávy: {len_msg} (slouží jako klíč k dekódování)\nklíč1: {int(key1)}\nklíč2: {int(key2)}\nklíč3: {int(key3)}\nXOR klíč: {xor_key}")
         elif method == "DWT - BCH codes":
             xor_key, codew_p_frame, codew_p_last_frame = args
             messagebox.showinfo("Hotovo", f"Kódování dokončeno\nXor: {xor_key}\nKlíč1: {int(codew_p_frame)}\nKlíč2: {int(codew_p_last_frame)}\n(slouží jako klíče k dekódování)")
+        elif method == "DCT psychovisual and object motion":
+            key = args[0]
+            messagebox.showinfo("Hotovo", f"Kódování dokončeno\nKlíč: {key}\n(slouží jako klíč k dekódování)")
         
         self.main_menu()
 
@@ -331,8 +356,7 @@ class SteganographyApp:
                 
                 xor_key_arr = np.array([int(bit) for bit in xor_key])
                 
-                
-                decoded_message = hmc.hamming_decode(video_path, int(key1), int(key2), int(key3), int(message_length),xor_key_arr,write_file = write_val)
+                decoded_message = hmc.hamming_decode(video_path, int(key1), int(key2), int(key3), int(message_length), xor_key_arr, write_file=write_val)
                 self.master.after(0, lambda: self.show_decode_result(decoded_message))
             
             elif method == "DWT - BCH codes":
@@ -349,10 +373,20 @@ class SteganographyApp:
                 
                 xor_key_arr = np.array([int(bit) for bit in xor_key])
     
-                
-                decoded_message = bch_dwt.decode_bch_dwt(video_path, int(key1), int(key2), xor_key_arr, bch_num=int(bch_code), write_file = write_val)
+                decoded_message = bch_dwt.decode_bch_dwt(video_path, int(key1), int(key2), xor_key_arr, bch_num=int(bch_code), write_file=write_val)
                 
                 self.master.after(0, lambda: self.show_decode_result(decoded_message))
+            
+            elif method == "DCT psychovisual and object motion":
+                motion_blocks_file = self.motion_blocks_path_var.get()
+                key = self.dct_key_entry.get()
+                write_val = self.write_var.get()
+                
+                try:
+                    decoded_message = dct_psy.decode_dtc_psyschovisual(video_path, int(key), motion_blocks_file, write_val)
+                    self.master.after(0, lambda: self.show_decode_result(decoded_message))
+                except Exception as e:
+                    messagebox.showerror("Error", f"An unexpected error occurred: {str(e)}")
             
             loading_window.close()
         
@@ -367,7 +401,4 @@ if __name__ == "__main__":
     style = ttk.Style()
     style.configure('TMenubutton', font=('Arial', 14))
     app = SteganographyApp(root)
-    root.mainloop()
-    
-
-    
+    root.mainloop() 
