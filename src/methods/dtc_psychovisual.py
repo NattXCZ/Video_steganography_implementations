@@ -12,6 +12,11 @@ ZIGZAG_INDICES = [
     (3, 1), (2, 2), (1, 3), (0, 4), (2, 3), (1, 4)
 ]
 
+########################
+def filter_motion_blocks(motion_blocks, remove_frame):
+    return [(frame, x, y) for frame, x, y in motion_blocks if frame not in remove_frame]
+########################
+
 def save_motion_blocks(motion_blocks, filename):
     """Save motion blocks to a file."""
     with open(filename, 'w') as f:
@@ -153,11 +158,13 @@ def encode_dtc_psyschovisual(orig_video_path, message_path, motion_blocks_file, 
     Returns:
         int: Length of the message.
     """
-    properties = vid_utils.video_to_rgb_frames(orig_video_path)
     message = bnr.string_to_binary_array(message_path)
-    motion_blocks, T_values = detect_motion_blocks_and_T(properties)
-    save_motion_blocks(motion_blocks, motion_blocks_file)
-
+    
+    properties = vid_utils.video_to_rgb_frames(orig_video_path)
+    motion_blocks_w_I, T_values = detect_motion_blocks_and_T(properties)
+    I_frame_indexes = vid_utils.get_I_frame_numbers(orig_video_path)
+    motion_blocks = filter_motion_blocks(motion_blocks_w_I, I_frame_indexes)
+    
     T_iterator = iter(T_values)
     message_index = 0
     bits_to_hide = 3
@@ -233,8 +240,8 @@ def decode_dtc_psyschovisual(stego_video_path, len_b_msg, motion_blocks_file, wr
 
         block = y_channel[y:y+8, x:x+8]
         dct_block = cv2.dct(np.float32(block))
-        d = zigzag_create_D(dct_block)
-        three_decoded_bits = extracting_technique_abs(d)
+        D = zigzag_create_D(dct_block)
+        three_decoded_bits = extracting_technique_abs(D)
 
         for bit in three_decoded_bits:
             if len(message) < len_b_msg:
@@ -250,3 +257,24 @@ def decode_dtc_psyschovisual(stego_video_path, len_b_msg, motion_blocks_file, wr
 
     vid_utils.remove_dirs()
     return decoded_message
+
+
+def main():
+    video_file_path = r"data_testing\input_video.mp4"
+    #message = "Quod iriure nam vel te consetetur sanctus sanctus takimata et. Takimata ex est sit accusam dolor sadipscing sadipscing ea laoreet takimata nulla duis ipsum dolor aliquyam lorem sea dolore. Aliquyam eu vulputate magna at takimata et. Elitr ut vero ex. Eu diam et dolor sed ut voluptua esse. Nam takimata et amet. Iusto vel duis. Ad dolore lorem enim et no eos. Aliquyam illum invidunt amet sed praesent vulputate rebum erat no sed dolore dignissim eros autem stet consequat voluptua duis. Accumsan stet rebum invidunt consetetur ut eu invidunt. Ea lorem kasd eos dolor hendrerit augue ipsum nobis. Sed exerci molestie ea enim dignissim et est invidunt justo sed et elit. Sed et duo justo sit et nulla voluptua dignissim sanctus ea in dolores diam labore eirmod invidunt autem. Euismod in accusam dolor. Autem dolor sed clita quod dolores dolore eum duis sit rebum amet et amet ipsum erat nisl. Takimata amet lorem consequat qui. Lorem duis et sadipscing vero est esse diam blandit duo. Erat sadipscing ea augue dolor eos ipsum erat dolores aliquyam nisl elit. Justo dolor eos vulputate stet dolore lorem stet."
+    message = "Ut et molestie dolor ea aliquam ut. Praesent ea dolore cum sit clita justo praesent kasd ea ut duis lorem. Amet dolor delenit diam duo erat clita et eos dolor accumsan sed aliquyam rebum consetetur. No facilisis ut lorem sit dolore qui te ea justo at et labore tempor."
+    stego_video_path = r"video.avi"
+    motion_blocks_file = r"motion_blocks.json"
+    
+    
+    
+    len_b_msg = encode_dtc_psyschovisual(video_file_path, message, motion_blocks_file, False)
+
+    decoded_message = decode_dtc_psyschovisual(stego_video_path, len_b_msg, motion_blocks_file)
+    
+    print(" ")
+    print(len_b_msg)
+    print("Decoded message:", decoded_message)
+
+if __name__ == "__main__":
+    main()
