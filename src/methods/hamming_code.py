@@ -237,8 +237,3 @@ def hamming_decode_codeword(codeword):
         R[index] = 1 - R[index]
 
     return R[-4:]
-
-
-def fill_end_zeros(input_array):
-    """Pad the input array with zeros to make its length a multiple of 4."""
-    return np.pad(input_array, (0, -len(input_array) % 4), mode='constant')

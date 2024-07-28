@@ -188,24 +188,3 @@ def decode_dtc_psyschovisual(stego_video_path, len_b_msg, motion_blocks_file, wr
 
     vid_utils.remove_dirs()
     return decoded_message
-
-
-def main():
-    video_file_path = r"data_testing\input_video.mp4"
-    #message = "Quod iriure nam vel te consetetur sanctus sanctus takimata et. Takimata ex est sit accusam dolor sadipscing sadipscing ea laoreet takimata nulla duis ipsum dolor aliquyam lorem sea dolore. Aliquyam eu vulputate magna at takimata et. Elitr ut vero ex. Eu diam et dolor sed ut voluptua esse. Nam takimata et amet. Iusto vel duis. Ad dolore lorem enim et no eos. Aliquyam illum invidunt amet sed praesent vulputate rebum erat no sed dolore dignissim eros autem stet consequat voluptua duis. Accumsan stet rebum invidunt consetetur ut eu invidunt. Ea lorem kasd eos dolor hendrerit augue ipsum nobis. Sed exerci molestie ea enim dignissim et est invidunt justo sed et elit. Sed et duo justo sit et nulla voluptua dignissim sanctus ea in dolores diam labore eirmod invidunt autem. Euismod in accusam dolor. Autem dolor sed clita quod dolores dolore eum duis sit rebum amet et amet ipsum erat nisl. Takimata amet lorem consequat qui. Lorem duis et sadipscing vero est esse diam blandit duo. Erat sadipscing ea augue dolor eos ipsum erat dolores aliquyam nisl elit. Justo dolor eos vulputate stet dolore lorem stet."
-    message = "Ut et molestie dolor ea aliquam ut. Praesent ea dolore cum sit clita justo praesent kasd ea ut duis lorem. Amet dolor delenit diam duo erat clita et eos dolor accumsan sed aliquyam rebum consetetur. No facilisis ut lorem sit dolore qui te ea justo at et labore tempor."
-    stego_video_path = r"video.avi"
-    motion_blocks_file = r"motion_blocks.json"
-    
-    
-    
-    len_b_msg = encode_dtc_psyschovisual(video_file_path, message, motion_blocks_file, False)
-
-    decoded_message = decode_dtc_psyschovisual(stego_video_path, len_b_msg, motion_blocks_file)
-    
-    print(" ")
-    print(len_b_msg)
-    print("Decoded message:", decoded_message)
-
-if __name__ == "__main__":
-    main()
