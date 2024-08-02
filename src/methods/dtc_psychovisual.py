@@ -1,13 +1,12 @@
 import os
-import json
+
 import cv2
 import numpy as np
 
-from skimage.metrics import structural_similarity as ssim
 from src.utils import video_processing_utils as vid_utils
 from src.utils import binary_utils as bnr
-from src.utils import string_utils
 from src.utils import motion_vectors_utils as mv
+
 
 ZIGZAG_INDICES = [
     (3, 1), (2, 2), (1, 3), (0, 4), (2, 3), (1, 4)
@@ -60,9 +59,10 @@ def hiding_technique_abs(msg_frame, f, s, D):
                 else:
                     C = D[2*u]
                     D[2*u] = D[2*u+1] + s[u]
-                    D[2*u+1] = C 
+                    D[2*u+1] = C
         S += 1
     return D
+
 
 def extracting_technique_abs(D):
     """Extract the message bits from a zigzag pattern list."""
@@ -74,28 +74,29 @@ def extracting_technique_abs(D):
             message_bits.append(0)
     return message_bits
 
+
 def encode_dtc_psyschovisual(orig_video_path, message_path, motion_blocks_file, generate_threshold=True):
     """
     Encode a message into a video using the DTC Psychovisual LSB method.
-    
+
     Args:
         orig_video_path (str): Path to the original video.
         message_path (str): Path to the message file.
         motion_blocks_file (str): File to save the motion blocks.
         generate_threshold (bool, optional): Flag to generate threshold. Default is True.
-        
+
     Returns:
         int: Length of the message.
     """
     message = bnr.string_to_binary_array(message_path)
-    
+
     properties = vid_utils.video_to_rgb_frames(orig_video_path)
     motion_blocks_w_I, T_values = mv.detect_motion_blocks_and_T(properties)
     I_frame_indexes = vid_utils.get_I_frame_numbers(orig_video_path)
     motion_blocks = mv.filter_motion_blocks(motion_blocks_w_I, I_frame_indexes)
-    
+
     mv.save_motion_blocks(motion_blocks, motion_blocks_file)
-    
+
     T_iterator = iter(T_values)
     message_index = 0
     bits_to_hide = 3
@@ -140,16 +141,17 @@ def encode_dtc_psyschovisual(orig_video_path, message_path, motion_blocks_file, 
 
     return len(message)
 
+
 def decode_dtc_psyschovisual(stego_video_path, len_b_msg, motion_blocks_file, write_file=False):
     """
     Decode a message from a video using the DTC Psychovisual LSB method.
-    
+
     Args:
         stego_video_path (str): Path to the stego video.
         len_b_msg (int): Length of the binary message.
         motion_blocks_file (str): File containing the motion blocks.
         write_file (bool, optional): Flag to write decoded message to a file. Default is False.
-        
+
     Returns:
         str: Decoded message.
     """
@@ -179,11 +181,11 @@ def decode_dtc_psyschovisual(stego_video_path, len_b_msg, motion_blocks_file, wr
                 message.append(bit)
             else:
                 break
-            
+
     decoded_message = bnr.binary_array_to_string(np.array(message))
 
     if write_file:
-        #string_utils.write_message_to_file(decoded_message, "decoded_message.txt")
+        # string_utils.write_message_to_file(decoded_message, "decoded_message.txt")
         with open("decoded_message.txt", 'w', encoding='utf-8') as file:
             file.write(decoded_message)
         print("[INFO] Saved decoded message as decoded_message.txt")

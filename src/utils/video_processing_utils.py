@@ -3,6 +3,7 @@ import shutil
 from subprocess import run, call, PIPE
 
 from math import ceil
+import numpy as np
 import json
 import cv2
 
@@ -13,6 +14,15 @@ Y_FOLDER = "./tmp/Y"
 U_FOLDER = "./tmp/U"
 V_FOLDER = "./tmp/V"
 RGB_FOLDER = "./frames"
+
+
+def get_positions(col_key, row_key, width, height):
+    """Generates and shuffles positions."""
+    np.random.seed(col_key + row_key)
+    positions = [(i, j) for i in range(height) for j in range(width)]
+    np.random.shuffle(positions)
+    
+    return positions
 
 
 def has_audio_track(filename, ffprobe_path=r".\src\utils\ffprobe.exe"):

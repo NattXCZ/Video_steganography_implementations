@@ -3,7 +3,6 @@ import numpy as np
 
 from src.utils import binary_utils as bnr
 from src.utils import video_processing_utils as vid_utils
-from src.utils import string_utils
 
 # Generator matrix
 G = np.array([
@@ -24,11 +23,6 @@ H_TRANSPOSED = np.array([
     [1, 0, 1]
 ])
 
-def get_positions(col_key, row_key, width, height):
-    np.random.seed(col_key + row_key)
-    positions = [(i, j) for i in range(height) for j in range(width)]
-    np.random.shuffle(positions)
-    return positions
 
 def hamming_encode(orig_video_path, message_path, shift_key, col_key, row_key, xor_key):
     """
@@ -51,7 +45,8 @@ def hamming_encode(orig_video_path, message_path, shift_key, col_key, row_key, x
     for i in range(1, int(vid_properties["frames"]) + 1):
         vid_utils.rgb2yuv(f"frame_{i}.png")
 
-    max_codew_p_frame = int(vid_properties["height"] * vid_properties["width"] * 0.22)
+    max_codew_p_frame = int(
+        vid_properties["height"] * vid_properties["width"] * 0.22)
 
     message = bnr.string_to_binary_array(message_path)
     message = bnr.fill_end_zeros(np.roll(message, shift_key), 4)
@@ -69,7 +64,8 @@ def hamming_encode(orig_video_path, message_path, shift_key, col_key, row_key, x
     embedded_codewords_per_frame = 0
     curr_frame = 1
 
-    positions = get_positions(col_key, row_key, int(vid_properties["width"]), int(vid_properties["height"]))
+    positions = vid_utils.get_positions(col_key, row_key, int(
+        vid_properties["width"]), int(vid_properties["height"]))
     used_positions = set()
 
     for i in range(0, len(message), 4):
@@ -99,9 +95,12 @@ def hamming_encode(orig_video_path, message_path, shift_key, col_key, row_key, x
         u_binary_value = format(u_frame[row, col], '#010b')
         v_binary_value = format(v_frame[row, col], '#010b')
 
-        y_frame[row, col] = int(y_binary_value[:-3] + ''.join(str(bit) for bit in codeword[:3]), 2)
-        u_frame[row, col] = int(u_binary_value[:-2] + ''.join(str(bit) for bit in codeword[3:5]), 2)
-        v_frame[row, col] = int(v_binary_value[:-2] + ''.join(str(bit) for bit in codeword[5:]), 2)
+        y_frame[row, col] = int(y_binary_value[:-3] +
+                                ''.join(str(bit) for bit in codeword[:3]), 2)
+        u_frame[row, col] = int(u_binary_value[:-2] +
+                                ''.join(str(bit) for bit in codeword[3:5]), 2)
+        v_frame[row, col] = int(v_binary_value[:-2] +
+                                ''.join(str(bit) for bit in codeword[5:]), 2)
 
         embedded_codewords_per_frame += 1
 
@@ -126,11 +125,13 @@ def hamming_encode(orig_video_path, message_path, shift_key, col_key, row_key, x
     for i in range(1, int(vid_properties["frames"]) + 1):
         vid_utils.yuv2rgb(f"frame_{i}.png")
 
-    vid_utils.reconstruct_video_from_rgb_frames(orig_video_path, vid_properties)
+    vid_utils.reconstruct_video_from_rgb_frames(
+        orig_video_path, vid_properties)
     vid_utils.remove_dirs()
 
     print("[INFO] embedding finished")
     return len(message)
+
 
 def hamming_decode(stego_video_path, shift_key, col_key, row_key, message_len, xor_key, write_file=False):
     """
@@ -165,7 +166,8 @@ def hamming_decode(stego_video_path, shift_key, col_key, row_key, message_len, x
 
     actual_max_codew = 1 if codew_p_frame == 0 else codew_p_frame
 
-    positions = get_positions(col_key, row_key, int(vid_properties["width"]), int(vid_properties["height"]))
+    positions = vid_utils.get_positions(col_key, row_key, int(
+        vid_properties["width"]), int(vid_properties["height"]))
     used_positions = set()
 
     for curr_frame in range(1, int(vid_properties["frames"]) + 1):
@@ -216,7 +218,7 @@ def hamming_decode(stego_video_path, shift_key, col_key, row_key, message_len, x
     message = bnr.binary_array_to_string(output_message)
 
     if write_file:
-        #string_utils.write_message_to_file(message, "decoded_message.txt")
+        # string_utils.write_message_to_file(message, "decoded_message.txt")
         with open("decoded_message.txt", 'w', encoding='utf-8') as file:
             file.write(message)
         print("[INFO] Saved decoded message as decoded_message.txt")
@@ -224,9 +226,11 @@ def hamming_decode(stego_video_path, shift_key, col_key, row_key, message_len, x
     vid_utils.remove_dirs()
     return message
 
+
 def hamming_encode_codeword(four_bits):
     """Encode 4 bits using Hamming Code (7, 4)."""
     return np.dot(four_bits, G) % 2
+
 
 def hamming_decode_codeword(codeword):
     """Decode a 7-bit Hamming Code (7, 4) codeword."""

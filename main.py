@@ -14,7 +14,7 @@ intro_text = (
     "1. LSB s Hamming kódem (7,4) - využívá nejméně významné bity pro skrytí dat a opravuje chyby pomocí Hamming kódu.\n\n"
     "2. DWT s BCH kódy (15, 11) - kombinuje diskrétní vlnkovou transformaci s BCH kódy pro opravu chyb.\n\n"
     "3. DCT s psychovisuální analýzou - používá diskrétní kosinovou transformaci a psychovizuální model pro určení vhodného místa pro vkládání. Tato metoda je vhodná jen pokud video obsahuje pohybující se objekty.\n\n\n"
-    "Vyberte prosím možnost 'Encode' pro skrytí zprávy nebo 'Decode' pro odhalení skryté zprávy."
+    "Vyberte prosím možnost 'Zakódovat' pro skrytí zprávy nebo 'Dekódovat' pro odhalení skryté zprávy."
 )
 
 
