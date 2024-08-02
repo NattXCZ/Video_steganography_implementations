@@ -5,7 +5,6 @@ from math import floor
 
 from src.utils import video_processing_utils as vid_utils
 from src.utils import binary_utils as bnr
-from src.utils import string_utils
 from galois import BCH
 
 FLOAT_PAIRS = (
@@ -51,7 +50,6 @@ def encode_bch_dwt(orig_video_path, message_path, xor_key, col_key, row_key, bch
     )
     
     actual_max_codew = 1 if codew_p_frame == 0 else codew_p_frame
-    #!zero_key = codew_p_frame == 0
     
     embedded_codewords_per_frame = 0
     curr_frame = 1
@@ -176,13 +174,9 @@ def decode_bch_dwt(stego_video_path, message_len, xor_key, col_key, row_key, bch
     decoded_message = []
     codeword_chaos =  np.zeros(15, dtype = np.uint8)
     decoded_codeword = np.zeros(bch_num, dtype = np.uint8)
-    
-
-
-
+ 
     vid_properties = vid_utils.video_to_rgb_frames(stego_video_path)
     vid_utils.create_dirs()
-    
     
     codew_p_frame, codew_p_last_frame = vid_utils.distribution_of_bits_between_frames(
         message_len, vid_properties["frames"], bch_num
@@ -273,7 +267,6 @@ def decode_bch_dwt(stego_video_path, message_len, xor_key, col_key, row_key, bch
     message = bnr.binary_array_to_string(output_message)
     
     if write_file:
-        #string_utils.write_message_to_file(message,"decoded_message.txt")
         with open("decoded_message.txt", 'w', encoding='utf-8') as file:
             file.write(message)
         print("[INFO] saved decoded message as decoded_message.txt")
@@ -289,14 +282,13 @@ def logistic_key(N, mu, x0):
         X[k] = mu * X[k-1] * (1 - X[k-1])
     return X
 
-
 def create_B(logistic_seq):
     """Create a binary sequence from a logistic sequence."""
     T = np.mean(logistic_seq)
     return np.array([1 if x >= T else 0 for x in logistic_seq], dtype=np.uint8)
 
-
 def process_part_component(binary_array, chaos_array, start_index, end_index, B):
+    """Process a part of the binary array using chaos algorithm and logistic mapping."""
     k = 0
     for i in range(start_index, end_index):
         C = binary_array[i]
@@ -305,7 +297,6 @@ def process_part_component(binary_array, chaos_array, start_index, end_index, B)
         k += 1
             
     return chaos_array
-
 
 def process_binary_array(binary_array, encode = True):
     """Process a binary array using logistic mapping."""
