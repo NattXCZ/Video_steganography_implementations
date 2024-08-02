@@ -134,6 +134,14 @@ class SteganographyApp:
             self.key3_entry.pack()
             
         elif selected_method == "DWT - BCH codes":
+            tk.Label(self.additional_options_frame, text="Klíč 1:", font=("Arial", 14)).pack()
+            self.col_key_entry = tk.Entry(self.additional_options_frame, font=("Arial", 14), width=50, validate="key", validatecommand=(validate_numeric, '%P'))
+            self.col_key_entry.pack()
+            
+            tk.Label(self.additional_options_frame, text="Klíč 2:", font=("Arial", 14)).pack()
+            self.row_key_entry = tk.Entry(self.additional_options_frame, font=("Arial", 14), width=50, validate="key", validatecommand=(validate_numeric, '%P'))
+            self.row_key_entry.pack()
+
             tk.Label(self.additional_options_frame, text="BCH Code:", font=("Arial", 14)).pack()
             self.bch_code_var = tk.StringVar()
             self.bch_code_combobox = ttk.Combobox(self.additional_options_frame, textvariable=self.bch_code_var, font=("Arial", 14), values=[5, 7, 11], state='readonly')
@@ -215,12 +223,16 @@ class SteganographyApp:
             self.xor_key_entry.pack()
             
             tk.Label(self.additional_options_frame, text="Klíč 1:", font=("Arial", 14)).pack()
-            self.key1_entry = tk.Entry(self.additional_options_frame, font=("Arial", 14), width=50, validate="key", validatecommand=(validate_numeric, '%P'))
-            self.key1_entry.pack()
+            self.col_key_entry = tk.Entry(self.additional_options_frame, font=("Arial", 14), width=50, validate="key", validatecommand=(validate_numeric, '%P'))
+            self.col_key_entry.pack()
             
             tk.Label(self.additional_options_frame, text="Klíč 2:", font=("Arial", 14)).pack()
-            self.key2_entry = tk.Entry(self.additional_options_frame, font=("Arial", 14), width=50, validate="key", validatecommand=(validate_numeric, '%P'))
-            self.key2_entry.pack()
+            self.row_key_entry = tk.Entry(self.additional_options_frame, font=("Arial", 14), width=50, validate="key", validatecommand=(validate_numeric, '%P'))
+            self.row_key_entry.pack()
+            
+            tk.Label(self.additional_options_frame, text="Délka zprávy:", font=("Arial", 14)).pack()
+            self.message_length_entry = tk.Entry(self.additional_options_frame, font=("Arial", 14), width=50, validate="key", validatecommand=(validate_numeric, '%P'))
+            self.message_length_entry.pack()
             
             tk.Label(self.additional_options_frame, text="BCH Code:", font=("Arial", 14)).pack()
             self.bch_code_var = tk.StringVar()
@@ -229,7 +241,6 @@ class SteganographyApp:
             
             self.write_var = tk.BooleanVar()
             tk.Checkbutton(self.additional_options_frame, text="Uložit dekódovanou zprávu jako textový soubor", variable=self.write_var, font=("Arial", 14)).pack()
-
         elif selected_method == "DCT psychovisual and object motion":
             # Frame for selecting motion blocks file
             motion_blocks_frame = tk.Frame(self.additional_options_frame)
@@ -296,13 +307,15 @@ class SteganographyApp:
                     
             elif method == "DWT - BCH codes":
                 bch_code = self.bch_code_var.get()
+                col_key = self.col_key_entry.get()
+                row_key = self.row_key_entry.get()
                 
                 xor_random_key = np.random.randint(0, 2, size=15)
                 
                 try:
-                    codew_p_frame, codew_p_last_frame = bch_dwt.encode_bch_dwt(video_path, message, xor_random_key, bch_num=int(bch_code))
-                    self.master.after(0, lambda: self.show_encode_result("DWT - BCH codes", ''.join(map(str, xor_random_key)), codew_p_frame, codew_p_last_frame))
-            
+                    message_len = bch_dwt.encode_bch_dwt(video_path, message, xor_random_key, int(col_key), int(row_key), bch_num=int(bch_code))
+                    self.master.after(0, lambda: self.show_encode_result("DWT - BCH codes", ''.join(map(str, xor_random_key)), message_len, col_key, row_key))
+
                 except ValueError as e:
                     messagebox.showerror("Error", str(e))
                 except Exception as e:
@@ -325,8 +338,8 @@ class SteganographyApp:
             len_msg, key1, key2, key3, xor_key = args
             messagebox.showinfo("Hotovo", f"Kódování dokončeno\nDélka zprávy: {len_msg} (slouží jako klíč k dekódování)\nklíč1: {int(key1)}\nklíč2: {int(key2)}\nklíč3: {int(key3)}\nXOR klíč: {xor_key}")
         elif method == "DWT - BCH codes":
-            xor_key, codew_p_frame, codew_p_last_frame = args
-            messagebox.showinfo("Hotovo", f"Kódování dokončeno\nXor: {xor_key}\nKlíč1: {int(codew_p_frame)}\nKlíč2: {int(codew_p_last_frame)}\n(slouží jako klíče k dekódování)")
+            xor_key, message_len, col_key, row_key = args
+            messagebox.showinfo("Hotovo", f"Kódování dokončeno\nXor: {xor_key}\nKlíč 1: {col_key}\nKlíč 2: {row_key}\nDélka zprávy: {message_len}\n(slouží jako klíče k dekódování)")
         elif method == "DCT psychovisual and object motion":
             key = args[0]
             messagebox.showinfo("Hotovo", f"Kódování dokončeno\nKlíč: {key}\n(slouží jako klíč k dekódování)")
@@ -358,11 +371,12 @@ class SteganographyApp:
                 
                 decoded_message = hmc.hamming_decode(video_path, int(key1), int(key2), int(key3), int(message_length), xor_key_arr, write_file=write_val)
                 self.master.after(0, lambda: self.show_decode_result(decoded_message))
-            
+
             elif method == "DWT - BCH codes":
                 xor_key = self.xor_key_entry.get()
-                key1 = self.key1_entry.get()
-                key2 = self.key2_entry.get()
+                col_key = self.col_key_entry.get()
+                row_key = self.row_key_entry.get()
+                message_length = self.message_length_entry.get()
                 bch_code = self.bch_code_var.get()
                 write_val = self.write_var.get()
                 
@@ -372,11 +386,11 @@ class SteganographyApp:
                     return
                 
                 xor_key_arr = np.array([int(bit) for bit in xor_key])
-    
-                decoded_message = bch_dwt.decode_bch_dwt(video_path, int(key1), int(key2), xor_key_arr, bch_num=int(bch_code), write_file=write_val)
+
+                decoded_message = bch_dwt.decode_bch_dwt(video_path, int(message_length), xor_key_arr, int(col_key), int(row_key), bch_num=int(bch_code), write_file=write_val)
                 
                 self.master.after(0, lambda: self.show_decode_result(decoded_message))
-            
+                
             elif method == "DCT psychovisual and object motion":
                 motion_blocks_file = self.motion_blocks_path_var.get()
                 key = self.dct_key_entry.get()
