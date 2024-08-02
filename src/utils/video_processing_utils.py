@@ -1,9 +1,11 @@
 import os
 import shutil
 from subprocess import run, call, PIPE
+
 from math import ceil
 import json
 import cv2
+
 
 # Global variables
 TEMPORAL_FOLDER = "./tmp"
@@ -20,7 +22,7 @@ def has_audio_track(filename, ffprobe_path=r".\src\utils\ffprobe.exe"):
                  stdout=PIPE,
                  stderr=PIPE,
                  text=True)
-    
+
     return 'audio' in result.stdout.split()
 
 
@@ -58,7 +60,8 @@ def video_to_rgb_frames(video_path):
         if frame is None:
             break
         frame_count += 1
-        cv2.imwrite(os.path.join(temporal_folder, f"frame_{frame_count}.png"), frame)
+        cv2.imwrite(os.path.join(temporal_folder,
+                    f"frame_{frame_count}.png"), frame)
 
     capture.release()
 
@@ -70,11 +73,11 @@ def rgb2yuv(image_name):
     """Convert an RGB image to YUV color space and save the components."""
     frame_path = os.path.join(RGB_FOLDER, image_name)
     rgb_image = cv2.imread(frame_path)
-    
+
     if rgb_image is None:
         print(f"Error: Unable to load {frame_path}")
         return
-    
+
     yuv_image = cv2.cvtColor(rgb_image, cv2.COLOR_RGB2YCrCb)
 
     Y, U, V = cv2.split(yuv_image)
@@ -93,7 +96,7 @@ def yuv2rgb(image_name):
     Y = cv2.imread(y_path, cv2.IMREAD_GRAYSCALE)
     U = cv2.imread(u_path, cv2.IMREAD_GRAYSCALE)
     V = cv2.imread(v_path, cv2.IMREAD_GRAYSCALE)
-    
+
     if Y is None or U is None or V is None:
         print(f"Error: Unable to load components for {image_name}")
         return
@@ -109,7 +112,7 @@ def yuv2rgb(image_name):
 def create_dirs():
     """Create necessary directories for temporary files."""
     os.makedirs(TEMPORAL_FOLDER, exist_ok=True)
-    
+
     os.makedirs(Y_FOLDER, exist_ok=True)
     os.makedirs(U_FOLDER, exist_ok=True)
     os.makedirs(V_FOLDER, exist_ok=True)
@@ -122,7 +125,7 @@ def remove_dirs():
         print(f"[INFO] Removed {TEMPORAL_FOLDER} and its subdirectories.")
     else:
         print(f"[INFO] {TEMPORAL_FOLDER} does not exist.")
-        
+
     if os.path.exists(RGB_FOLDER):
         shutil.rmtree(RGB_FOLDER)
         print(f"[INFO] Removed {RGB_FOLDER}.")
@@ -134,8 +137,8 @@ def distribution_of_bits_between_frames(len_message, frame_count, n):
     """Calculate the distribution of bits between frames."""
     codew_in_msg = ceil(len_message / n)
     codew_p_frame = codew_in_msg // frame_count
-    tail = codew_in_msg - (codew_p_frame * frame_count) 
-    
+    tail = codew_in_msg - (codew_p_frame * frame_count)
+
     return codew_p_frame, codew_p_frame + tail
 
 
@@ -147,36 +150,36 @@ def reconstruct_video_from_rgb_frames(file_path, properties, ffmpeg_path=r".\src
     if has_audio_track(file_path):
         # Extract audio stream from video
         extract_audio_track(file_path)
-        
+
         # Recreate video from frames (without audio)
-        call([ffmpeg_path, "-r", str(fps), "-i", "frames/frame_%d.png", 
-              "-vcodec", "ffv1", 
-              "-level", "3", 
-              "-coder", "1", 
-              "-context", "1", 
-              "-g", "1", 
+        call([ffmpeg_path, "-r", str(fps), "-i", "frames/frame_%d.png",
+              "-vcodec", "ffv1",
+              "-level", "3",
+              "-coder", "1",
+              "-context", "1",
+              "-g", "1",
               "-pix_fmt", "bgr0",
               "-color_range", "pc",
               "tmp/video.avi", "-y"])
         # Add audio to a recreated video
         call([ffmpeg_path, "-i", f"tmp/video.{file_extension}", "-i", "tmp/audio.wav",
               "-q:v", "1", "-codec", "copy", f"video.{file_extension}", "-y"])
-   
+
     else:
         # Recreate video from frames (without audio)
-        call([ffmpeg_path, "-r", str(fps), "-i", "frames/frame_%d.png", 
-              "-vcodec", "ffv1", 
-              "-level", "3", 
-              "-coder", "1", 
-              "-context", "1", 
-              "-g", "1", 
+        call([ffmpeg_path, "-r", str(fps), "-i", "frames/frame_%d.png",
+              "-vcodec", "ffv1",
+              "-level", "3",
+              "-coder", "1",
+              "-context", "1",
+              "-g", "1",
               "-pix_fmt", "bgr0",
               "-color_range", "pc",
               "video.avi", "-y"])
-        
+
     print("[INFO] reconstruction is finished")
-    
-    
+
+
 def get_I_frame_numbers(video_file, ffprobe_path="ffprobe"):
     """Get the numbers of I-frames in a video."""
     cmd = [
@@ -188,10 +191,11 @@ def get_I_frame_numbers(video_file, ffprobe_path="ffprobe"):
         "-of", "json",
         video_file
     ]
-    
+
     result = run(cmd, capture_output=True, text=True)
     data = json.loads(result.stdout)
-    
-    i_frames = [index for index, packet in enumerate(data['packets']) if 'K' in packet['flags']]
-    
+
+    i_frames = [index for index, packet in enumerate(
+        data['packets']) if 'K' in packet['flags']]
+
     return i_frames
