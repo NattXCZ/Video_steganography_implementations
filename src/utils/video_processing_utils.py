@@ -158,7 +158,6 @@ def reconstruct_video_from_rgb_frames(file_path, properties, ffmpeg_path=r".\src
               "-pix_fmt", "bgr0",
               "-color_range", "pc",
               "tmp/video.avi", "-y"])
-        
         # Add audio to a recreated video
         call([ffmpeg_path, "-i", f"tmp/video.{file_extension}", "-i", "tmp/audio.wav",
               "-q:v", "1", "-codec", "copy", f"video.{file_extension}", "-y"])

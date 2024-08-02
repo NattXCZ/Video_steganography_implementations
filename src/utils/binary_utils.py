@@ -30,3 +30,9 @@ def fill_end_zeros(array, num):
         adjusted_array = np.pad(array, (0, num_zeros), mode='constant', constant_values=0)
 
         return adjusted_array
+    
+    
+def write_message_to_file(message, filename):
+    """Write a message string to a specified file"""
+    with open(filename, 'w', encoding='utf-8') as file:
+        file.write(message)

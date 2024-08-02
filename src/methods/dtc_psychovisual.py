@@ -183,7 +183,9 @@ def decode_dtc_psyschovisual(stego_video_path, len_b_msg, motion_blocks_file, wr
     decoded_message = bnr.binary_array_to_string(np.array(message))
 
     if write_file:
-        string_utils.write_message_to_file(decoded_message, "decoded_message.txt")
+        #string_utils.write_message_to_file(decoded_message, "decoded_message.txt")
+        with open("decoded_message.txt", 'w', encoding='utf-8') as file:
+            file.write(decoded_message)
         print("[INFO] Saved decoded message as decoded_message.txt")
 
     vid_utils.remove_dirs()
