@@ -20,7 +20,7 @@ https://github.com/NattXCZ/Video_steganography_implementations.git
 
 
 3. Nainstalujte aplikaci pomocí setup.py:
-pip install .
+`pip install .`
 
 
 
@@ -28,4 +28,4 @@ pip install .
 ## Použití
 
 Po instalaci můžete aplikaci spustit pomocí příkazu:
-python main.py
+`python main.py`
