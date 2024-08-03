@@ -17,7 +17,6 @@ setup(
         'pywavelets',
         'galois',
         'scikit-image',
-        'tkinter',
     ],
     python_requires='>=3.9',
 )
