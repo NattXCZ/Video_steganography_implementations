@@ -1,7 +1,16 @@
 
 # Video Steganography Implementations
 
-Tato aplikace implementuje různé steganografické metody pro skrývání dat ve video souborech.
+Tato aplikace implementuje různé steganografické metody pro skrývání dat ve video souborech:
+
+1. **LSB s Hammingovým kódem (7, 4)**:
+   Tato metoda využívá techniku Least Significant Bit (LSB) pro vložení dat do nejméně významných bitů pixelů. Zároveň využívá Hammingův kód (7, 4) pro detekci a opravu chyb, což zvyšuje odolnost proti poškození dat. Je vhodná pro situace, kdy je prioritou zachování kvality videa a přesnost extrakce skrytých dat.
+
+2. **BCH kódy (15, 11) v DWT doméně**:
+   Tato metoda kombinuje diskrétní vlnkovou transformaci (DWT) pro rozklad obrazu na frekvenční pásma a BCH kódy pro robustní zakódování dat. Skrytá data jsou vložena do frekvenčních složek videa, které jsou méně nápadné pro lidské oko. Tato metoda je lepší pro situace, kde je důležitější odolnost vůči detekci než přesnost extrakce.
+
+3. **DCT psychovizuální analýza a pohyb objektu**:
+   Tato metoda využívá diskrétní kosinovou transformaci (DCT) a analyzuje pohyb objektů ve videu. Tajná data jsou skryta v DCT koeficientech v oblastech videa, kde dochází k pohybu, což pomáhá minimalizovat viditelnost změn. Tato metoda je ideální pro videa s dostatečným pohybem, kde je klíčová maximální kvalita výsledného videa.
 
 ## Struktura projektu
 
