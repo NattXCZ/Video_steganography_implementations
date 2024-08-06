@@ -180,8 +180,6 @@ def reconstruct_video_from_rgb_frames(file_path, properties, ffmpeg_path=r".\src
         call([ffmpeg_path, "-i", f"tmp/video.{file_extension}", "-i", "tmp/audio.wav",
                   "-c:v", "copy", "-c:a", "copy", f"video.{file_extension}", "-y"])
 
-
-
     else:
         # Recreate video from frames (without audio)
         call([ffmpeg_path, "-r", str(fps), "-i", "frames/frame_%d.png",
