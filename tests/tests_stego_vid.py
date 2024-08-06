@@ -138,7 +138,7 @@ def run_steganography_tests(
 
 # Example usage for a bunny.avi file
 if __name__ == "__main__":
-    original_file = r"data_testing/bunny.avi"
+    original_file = "bunny.avi"
     stego_file = "video.avi"
     msg_orig_bits = []
     msr_received_bits = []
