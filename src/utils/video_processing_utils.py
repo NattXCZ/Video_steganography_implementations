@@ -157,7 +157,11 @@ def reconstruct_video_from_rgb_frames(file_path, properties, ffmpeg_path=r".\src
     fps = properties["fps"]
     file_extension = "avi"
 
+
     if has_audio_track(file_path):
+        if not os.path.exists(TEMPORAL_FOLDER):
+            os.makedirs(TEMPORAL_FOLDER)
+            
         # Extract audio stream from video
         extract_audio_track(file_path)
 
@@ -171,9 +175,12 @@ def reconstruct_video_from_rgb_frames(file_path, properties, ffmpeg_path=r".\src
               "-pix_fmt", "bgr0",
               "-color_range", "pc",
               "tmp/video.avi", "-y"])
+              
         # Add audio to a recreated video
         call([ffmpeg_path, "-i", f"tmp/video.{file_extension}", "-i", "tmp/audio.wav",
-              "-q:v", "1", "-codec", "copy", f"video.{file_extension}", "-y"])
+                  "-c:v", "copy", "-c:a", "copy", f"video.{file_extension}", "-y"])
+
+
 
     else:
         # Recreate video from frames (without audio)
@@ -186,7 +193,7 @@ def reconstruct_video_from_rgb_frames(file_path, properties, ffmpeg_path=r".\src
               "-pix_fmt", "bgr0",
               "-color_range", "pc",
               "video.avi", "-y"])
-
+        
     print("[INFO] reconstruction is finished")
 
 

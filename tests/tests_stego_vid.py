@@ -91,7 +91,7 @@ def calculate_embedding_capacity(stego, secret_data_size):
 
 def calculate_bitrate(file_path):
     """Calculates the bitrate of a video file."""
-    file_size = os.path.getsize(file_path) * 8  # size in bits
+    file_size = os.path.getsize(file_path) * 8
     cap = cv2.VideoCapture(file_path)
     fps = cap.get(cv2.CAP_PROP_FPS)
     frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -136,7 +136,7 @@ def run_steganography_tests(
     return results
 
 
-# Example usage
+# Example usage for a bunny.avi file
 if __name__ == "__main__":
     original_file = r"data_testing/bunny.avi"
     stego_file = "video.avi"
