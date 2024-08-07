@@ -31,7 +31,7 @@ Tato aplikace implementuje různé steganografické metody pro skrývání dat v
 - FFmpeg
 
 ### Instalace FFmpeg
-Pro běh programu je nutné mít nainstalován FFmpeg (https://ffmpeg.org/). Doporučuji ke stahování využít Chocolatey. Podrobný návod k instalaci Chocolatey najdete na jejich oficiálních stránkách (https://chocolatey.org/install).
+Pro běh programu je nutné mít nainstalován [FFmpeg](https://ffmpeg.org/). Doporučuji ke stahování využít [Chocolatey](https://chocolatey.org/install).
 
 Postup instalace FFmpeg:
 1. Otevřete příkazový řádek jako správce
@@ -67,7 +67,7 @@ python main.py
 
 
 
-## Podrobný návod
+## Podrobný návod práce s programem
 
 Po spuštění se zobrazí úvodní menu obsahující stručný popis metod a dvě tlačítka: **Zakódovat** pro vložení zprávy do videa a **Dekódovat** pro dekódování zprávy ze stego videa.
 
@@ -93,7 +93,7 @@ Pro úspěšné dekódování je naprosto nezbytné použít stejnou metodu a kl
 
 ## Řešení problémů
 
-Pokud se objeví chybová hláška `OSError: Could not load shared object file: llvmlite.dll`, může objevit při importu knihovny galois, která následně používá numba, což vede k problému s llvmlite. Postupujte následovně:
+Pokud se objeví chybová hláška `OSError: Could not load shared object file: llvmlite.dll`, která se může objevit při importu knihovny galois, která následně používá numba, což vede k problému s llvmlite. Postupujte následovně:
 
 1. Zkuste nejprve přeinstalovat numpy a llvmlite.
 2. Pokud to nepomůže, stáhněte a nainstalujte Visual C++ Redistributable:
