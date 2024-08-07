@@ -15,11 +15,6 @@ U_FOLDER = "./tmp/U"
 V_FOLDER = "./tmp/V"
 RGB_FOLDER = "./frames"
 
-#FFMPEG_PATH = r".\src\utils\ffmpeg.exe"
-#FFPROBE_PATH = r".\src\utils\ffprobe.exe"
-FFMPEG_PATH = "ffmpeg"
-FFPROBE_PATH = "ffprobe"
-
 
 def get_positions(col_key, row_key, width, height):
     """Generates and shuffles positions."""
@@ -30,9 +25,9 @@ def get_positions(col_key, row_key, width, height):
     return positions
 
 
-def has_audio_track(filename, ffprobe_path= FFPROBE_PATH ): #!r".\src\utils\ffprobe.exe"):
+def has_audio_track(filename):
     """Check if the given video file contains an audio stream."""
-    result = run([ffprobe_path, "-loglevel", "error", "-show_entries",
+    result = run(["ffprobe", "-loglevel", "error", "-show_entries",
                   "stream=codec_type", "-of", "csv=p=0", filename],
                  stdout=PIPE,
                  stderr=PIPE,
@@ -41,9 +36,9 @@ def has_audio_track(filename, ffprobe_path= FFPROBE_PATH ): #!r".\src\utils\ffpr
     return 'audio' in result.stdout.split()
 
 
-def extract_audio_track(video_file, ffmpeg_path=FFMPEG_PATH ): #!r".\src\utils\ffmpeg.exe"):
+def extract_audio_track(video_file):
     """Extract the audio track from a video file."""
-    call([ffmpeg_path, "-i", video_file, "-aq", "0", "-map", "a", "tmp/audio.wav"])
+    call(["ffmpeg", "-i", video_file, "-aq", "0", "-map", "a", "tmp/audio.wav"])
     print("[INFO] audio extracted")
 
 
@@ -157,7 +152,7 @@ def distribution_of_bits_between_frames(len_message, frame_count, n):
     return codew_p_frame, codew_p_frame + tail
 
 
-def reconstruct_video_from_rgb_frames(file_path, properties, ffmpeg_path= FFMPEG_PATH ): #!r".\src\utils\ffmpeg.exe"):
+def reconstruct_video_from_rgb_frames(file_path, properties):
     """Reconstruct video from RGB frames using ffmpeg."""
     fps = properties["fps"]
     file_extension = "avi"
@@ -171,7 +166,7 @@ def reconstruct_video_from_rgb_frames(file_path, properties, ffmpeg_path= FFMPEG
         extract_audio_track(file_path)
 
         # Recreate video from frames (without audio)
-        call([ffmpeg_path, "-r", str(fps), "-i", "frames/frame_%d.png",
+        call(["ffmpeg", "-r", str(fps), "-i", "frames/frame_%d.png",
               "-vcodec", "ffv1",
               "-level", "3",
               "-coder", "1",
@@ -182,12 +177,12 @@ def reconstruct_video_from_rgb_frames(file_path, properties, ffmpeg_path= FFMPEG
               "tmp/video.avi", "-y"])
               
         # Add audio to a recreated video
-        call([ffmpeg_path, "-i", f"tmp/video.{file_extension}", "-i", "tmp/audio.wav",
+        call(["ffmpeg", "-i", f"tmp/video.{file_extension}", "-i", "tmp/audio.wav",
                   "-c:v", "copy", "-c:a", "copy", f"video.{file_extension}", "-y"])
 
     else:
         # Recreate video from frames (without audio)
-        call([ffmpeg_path, "-r", str(fps), "-i", "frames/frame_%d.png",
+        call(["ffmpeg", "-r", str(fps), "-i", "frames/frame_%d.png",
               "-vcodec", "ffv1",
               "-level", "3",
               "-coder", "1",
@@ -200,10 +195,10 @@ def reconstruct_video_from_rgb_frames(file_path, properties, ffmpeg_path= FFMPEG
     print("[INFO] reconstruction is finished")
 
 
-def get_I_frame_numbers(video_file, ffprobe_path= FFPROBE_PATH ): #!r".\src\utils\ffprobe.exe"):
+def get_I_frame_numbers(video_file):
     """Get the numbers of I-frames in a video."""
     cmd = [
-        ffprobe_path,
+        "ffprobe",
         "-v", "quiet",
         "-select_streams", "v:0",
         "-count_packets",
