@@ -15,6 +15,11 @@ U_FOLDER = "./tmp/U"
 V_FOLDER = "./tmp/V"
 RGB_FOLDER = "./frames"
 
+#FFMPEG_PATH = r".\src\utils\ffmpeg.exe"
+#FFPROBE_PATH = r".\src\utils\ffprobe.exe"
+FFMPEG_PATH = "ffmpeg"
+FFPROBE_PATH = "ffprobe"
+
 
 def get_positions(col_key, row_key, width, height):
     """Generates and shuffles positions."""
@@ -25,7 +30,7 @@ def get_positions(col_key, row_key, width, height):
     return positions
 
 
-def has_audio_track(filename, ffprobe_path=r".\src\utils\ffprobe.exe"):
+def has_audio_track(filename, ffprobe_path= FFPROBE_PATH ): #!r".\src\utils\ffprobe.exe"):
     """Check if the given video file contains an audio stream."""
     result = run([ffprobe_path, "-loglevel", "error", "-show_entries",
                   "stream=codec_type", "-of", "csv=p=0", filename],
@@ -36,7 +41,7 @@ def has_audio_track(filename, ffprobe_path=r".\src\utils\ffprobe.exe"):
     return 'audio' in result.stdout.split()
 
 
-def extract_audio_track(video_file, ffmpeg_path=r".\src\utils\ffmpeg.exe"):
+def extract_audio_track(video_file, ffmpeg_path=FFMPEG_PATH ): #!r".\src\utils\ffmpeg.exe"):
     """Extract the audio track from a video file."""
     call([ffmpeg_path, "-i", video_file, "-aq", "0", "-map", "a", "tmp/audio.wav"])
     print("[INFO] audio extracted")
@@ -152,7 +157,7 @@ def distribution_of_bits_between_frames(len_message, frame_count, n):
     return codew_p_frame, codew_p_frame + tail
 
 
-def reconstruct_video_from_rgb_frames(file_path, properties, ffmpeg_path=r".\src\utils\ffmpeg.exe"):
+def reconstruct_video_from_rgb_frames(file_path, properties, ffmpeg_path= FFMPEG_PATH ): #!r".\src\utils\ffmpeg.exe"):
     """Reconstruct video from RGB frames using ffmpeg."""
     fps = properties["fps"]
     file_extension = "avi"
@@ -195,7 +200,7 @@ def reconstruct_video_from_rgb_frames(file_path, properties, ffmpeg_path=r".\src
     print("[INFO] reconstruction is finished")
 
 
-def get_I_frame_numbers(video_file, ffprobe_path="ffprobe"):
+def get_I_frame_numbers(video_file, ffprobe_path= FFPROBE_PATH ): #!r".\src\utils\ffprobe.exe"):
     """Get the numbers of I-frames in a video."""
     cmd = [
         ffprobe_path,
