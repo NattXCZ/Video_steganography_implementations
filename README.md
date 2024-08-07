@@ -9,7 +9,7 @@ Tato aplikace implementuje různé steganografické metody pro skrývání dat v
 2. **DWT metoda pomocí BCH kódů (15, 11)**:
    Tato metoda kombinuje diskrétní vlnkovou transformaci (DWT) pro rozklad obrazu na frekvenční pásma a BCH kódy pro robustní zakódování dat. Skrytá data jsou vložena do frekvenčních složek videa, které jsou méně nápadné pro lidské oko. Tato metoda je lepší pro situace, kde je důležitější odolnost vůči detekci než přesnost extrakce.
 
-3. **Metoda založená na psychovizuální analýze DCT a pohybu objektu**:
+3. **Metoda založená na psychovizuální analýze DCT a pohybu objektů**:
    Tato metoda využívá diskrétní kosinovou transformaci (DCT) a analyzuje pohyb objektů ve videu. Tajná data jsou skryta v DCT koeficientech v oblastech videa, kde dochází k pohybu, což pomáhá minimalizovat viditelnost změn. Tato metoda je ideální pro videa s dostatečným pohybem, kde je klíčová maximální kvalita výsledného videa.
 
 ## Struktura projektu
@@ -21,37 +21,61 @@ Tato aplikace implementuje různé steganografické metody pro skrývání dat v
 - `main.py`: Hlavní spouštěcí skript aplikace
 - `setup.py`: Skript pro instalaci aplikace
 
-## Instalace
 
-1. Ujistěte se, že máte nainstalovaný Python 3.9 nebo novější verzi.
 
-2. Naklonujte tento repozitář:
+Jistě, zde je celý obsah README.md souboru v jeho aktualizované podobě:
+markdownCopy# Video Steganography Implementations
+
+## Instalace a spuštění
+
+### Požadavky
+- Python 3.9 nebo novější
+- FFmpeg
+
+### Instalace FFmpeg
+Pro běh programu je nutné mít nainstalován FFmpeg (https://ffmpeg.org/). 
+
+Doporučený postup instalace pomocí Chocolatey:
+1. Otevřete příkazový řádek jako správce
+2. Zadejte příkaz: `choco install ffmpeg-full`
+3. Ověřte instalaci příkazem: `ffmpeg -version`
+
+Podrobný návod k instalaci Chocolatey najdete na jejich oficiálních stránkách.
+
+### Instalace aplikace
+
+1. Naklonujte tento repozitář:
    ```
    git clone https://github.com/NattXCZ/Video_steganography_implementations.git
    ```
 
-3. Přejděte do složky `video_steganography_implementations`:
+
+2. Přejděte do složky `video_steganography_implementations`:
    ```
    cd video_steganography_implementations
    ```
 
-4. Nainstalujte aplikaci a všechny potřebné závislosti pomocí `setup.py`:
+3. Nainstalujte aplikaci a všechny potřebné závislosti pomocí `setup.py`:
    ```
    pip install .
    ```
 
-## Použití
+
+
+### Použití
 
 Po instalaci můžete aplikaci spustit pomocí příkazu:
 ```
 python main.py
 ```
 
-### Podrobný návod
+
+
+## Podrobný návod
 
 Po spuštění se zobrazí úvodní menu obsahující stručný popis metod a dvě tlačítka: **Zakódovat** pro vložení zprávy do videa a **Dekódovat** pro dekódování zprávy ze stego videa.
 
-#### Vkládání zprávy
+### Vkládání zprávy
 
 1. Vyberte metodu steganografie z rozbalovací nabídky v horní části okna.
 2. Klikněte na tlačítko **Vybrat video** a zvolte video soubor (podporované formáty: MP4, AVI, MOV).
@@ -61,7 +85,7 @@ Po spuštění se zobrazí úvodní menu obsahující stručný popis metod a dv
 
 Po vložení zprávy se stego video automaticky uloží jako `video.avi` do složky s programem. Po úspěšném vložení zprávy se zobrazí oznamovací okno s klíči, které jsou nezbytné pro dekódování zprávy z videa. Je důležité tyto klíče bezpečně zaznamenat, protože jejich ztráta znemožní dekódování. Aplikace může také automaticky generovat náhodné klíče pro dodatečné zabezpečení.
 
-#### Dekódování zprávy
+### Dekódování zprávy
 
 1. Vyberte stejnou metodu steganografie jako při vkládání.
 2. Klikněte na tlačítko **Vybrat stego-video** a zvolte video se skrytou zprávou.
@@ -69,3 +93,14 @@ Po vložení zprávy se stego video automaticky uloží jako `video.avi` do slo�
 4. Klikněte na **Potvrdit** pro zahájení dekódování zprávy.
 
 Pro úspěšné dekódování je naprosto nezbytné použít stejnou metodu a klíče jako při vkládání zprávy. Jakákoliv odchylka může vést k neúspěšnému dekódování nebo získání nesprávné zprávy.
+
+
+## Řešení problémů
+
+Pokud se objeví chybová hláška `OSError: Could not load shared object file: llvmlite.dll`, může objevit při importu knihovny galois, která následně používá numba, což vede k problému s llvmlite. Postupujte následovně:
+
+1. Zkuste nejprve přeinstalovat numpy a llvmlite.
+2. Pokud to nepomůže, stáhněte a nainstalujte Visual C++ Redistributable:
+   - **Pro x64:** [Stáhnout VC Redist x64](https://aka.ms/vs/17/release/vc_redist.x64.exe)
+   - **Další verze a informace:** [Visual Studio 2017 Redistributable](https://learn.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist?view=msvc-170)
+3. Po instalaci restartujte počítač.
