@@ -36,9 +36,8 @@ Pro běh programu je nutné mít nainstalován FFmpeg (https://ffmpeg.org/).
 Doporučený postup instalace pomocí Chocolatey:
 1. Otevřete příkazový řádek jako správce
 2. Zadejte příkaz: `choco install ffmpeg-full`
-3. Ověřte instalaci příkazem: `ffmpeg -version`
 
-Podrobný návod k instalaci Chocolatey najdete na jejich oficiálních stránkách.
+Podrobný návod k instalaci Chocolatey najdete na jejich oficiálních stránkách (https://chocolatey.org/install).
 
 ### Instalace aplikace
 
