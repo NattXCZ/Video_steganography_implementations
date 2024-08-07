@@ -18,6 +18,7 @@ Tato aplikace implementuje různé steganografické metody pro skrývání dat v
 - `src/`: Zdrojový kód aplikace
   - `methods/`: Implementace jednotlivých steganografických metod
   - `utils/`: Pomocné nástroje pro zpracování videa a binárních dat
+- `tests/`: Adresář s příkladový souborem s ukázkou výpočtů metrik pro testování.
 - `main.py`: Hlavní spouštěcí skript aplikace
 - `setup.py`: Skript pro instalaci aplikace
 
@@ -40,11 +41,7 @@ Postup instalace FFmpeg:
 
 ### Instalace aplikace
 
-1. Naklonujte tento repozitář:
-   ```
-   git clone https://github.com/NattXCZ/Video_steganography_implementations.git
-   ```
-
+1. Stáhněte si celou složku na své zařízení.
 
 2. Přejděte do složky `video_steganography_implementations`:
    ```
