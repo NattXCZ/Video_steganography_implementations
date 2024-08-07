@@ -46,7 +46,7 @@ class SteganographyApp:
     def __init__(self, master):
         self.master = master
         self.master.title("Video steganografie")
-        self.master.geometry("700x800")
+        self.master.geometry("800x700")
 
         self.methods = [
             "LSB - Hamming code (7,4)", "DWT - BCH codes", "DCT psychovisual and object motion"]
@@ -65,8 +65,8 @@ class SteganographyApp:
         text_frame.pack(fill=tk.BOTH, expand=True, pady=10)
 
         intro_text_widget = tk.Text(text_frame, font=(
-            "Arial", 14), wrap=tk.WORD, padx=10, pady=10)
-        intro_text_widget.pack(fill=tk.BOTH, expand=True)
+            "Arial", 14), wrap=tk.WORD, padx=10, pady=10, height=10)
+        intro_text_widget.pack(pady=10)
         intro_text_widget.insert(tk.END, intro_text)
         intro_text_widget.config(state=tk.DISABLED)
 
