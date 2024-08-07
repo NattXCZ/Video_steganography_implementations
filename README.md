@@ -23,8 +23,6 @@ Tato aplikace implementuje různé steganografické metody pro skrývání dat v
 
 
 
-Jistě, zde je celý obsah README.md souboru v jeho aktualizované podobě:
-markdownCopy# Video Steganography Implementations
 
 ## Instalace a spuštění
 
