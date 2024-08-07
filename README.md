@@ -31,13 +31,12 @@ Tato aplikace implementuje různé steganografické metody pro skrývání dat v
 - FFmpeg
 
 ### Instalace FFmpeg
-Pro běh programu je nutné mít nainstalován FFmpeg (https://ffmpeg.org/). 
+Pro běh programu je nutné mít nainstalován FFmpeg (https://ffmpeg.org/). Doporučuji ke stahování využít Chocolatey. Podrobný návod k instalaci Chocolatey najdete na jejich oficiálních stránkách (https://chocolatey.org/install).
 
-Doporučený postup instalace pomocí Chocolatey:
+Postup instalace FFmpeg:
 1. Otevřete příkazový řádek jako správce
 2. Zadejte příkaz: `choco install ffmpeg-full`
 
-Podrobný návod k instalaci Chocolatey najdete na jejich oficiálních stránkách (https://chocolatey.org/install).
 
 ### Instalace aplikace
 
