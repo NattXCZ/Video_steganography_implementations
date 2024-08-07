@@ -73,10 +73,10 @@ Po spuštění se zobrazí úvodní menu obsahující stručný popis metod a dv
 1. Vyberte metodu steganografie z rozbalovací nabídky v horní části okna.
 2. Klikněte na tlačítko **Vybrat video** a zvolte video soubor (podporované formáty: MP4, AVI, MOV).
 3. Do textového pole napište zprávu, kterou chcete skrýt. Zpráva může obsahovat pouze základní znaky bez diakritiky (např. písmena A-Z, číslice a běžné symboly).
-4. Vyplňte požadované klíče a parametry podle zvolené metody. Doporučuje se použít klíče v rozmezí od 0 do 20.
+4. Vyplňte požadované klíče a parametry podle zvolené metody. Doporučuje se použít klíče v rozmezí od 0 do 20. U metody využívající BCH codes je výhodné zadat z roletky hodnotu 5. Zachová zprávu co nejvíce původní a dostraní větší množství chyb.
 5. Klikněte na **Potvrdit** pro zahájení vkládání zprávy.
 
-Po vložení zprávy se stego video automaticky uloží jako `video.avi` do složky s programem. Po úspěšném vložení zprávy se zobrazí oznamovací okno s klíči, které jsou nezbytné pro dekódování zprávy z videa. Je důležité tyto klíče bezpečně zaznamenat, protože jejich ztráta znemožní dekódování. Aplikace může také automaticky generovat náhodné klíče pro dodatečné zabezpečení.
+Po vložení zprávy se stego video automaticky uloží jako `video.avi` do složky s programem. Po úspěšném vložení zprávy se zobrazí oznamovací okno s klíči, které jsou nezbytné pro dekódování zprávy z videa. Je důležité tyto klíče bezpečně zaznamenat, protože jejich ztráta znemožní dekódování. Aplikace také automaticky generuje náhodné klíče pro dodatečné zabezpečení.
 
 ### Dekódování zprávy
 
@@ -88,11 +88,11 @@ Po vložení zprávy se stego video automaticky uloží jako `video.avi` do slo�
 Pro úspěšné dekódování je naprosto nezbytné použít stejnou metodu a klíče jako při vkládání zprávy. Jakákoliv odchylka může vést k neúspěšnému dekódování nebo získání nesprávné zprávy.
 
 
-## Řešení problémů
+## Řešení případné chybové hlášky
 
-Pokud se objeví chybová hláška `OSError: Could not load shared object file: llvmlite.dll`, která se může objevit při importu knihovny galois, která následně používá numba, což vede k problému s llvmlite. Postupujte následovně:
+Pokud se objeví chybová hláška `OSError: Could not load shared object file: llvmlite.dll`, která se může objevit při importu knihovny galois, ta následně používá numba, což vede k problému s llvmlite. Postupujte následovně:
 
-1. Zkuste nejprve přeinstalovat numpy a llvmlite.
+1. Zkuste nejprve přeinstalovat numba a llvmlite.
 2. Pokud to nepomůže, stáhněte a nainstalujte Visual C++ Redistributable:
    - **Pro x64:** [Stáhnout VC Redist x64](https://aka.ms/vs/17/release/vc_redist.x64.exe)
    - **Další verze a informace:** [Visual Studio 2017 Redistributable](https://learn.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist?view=msvc-170)
