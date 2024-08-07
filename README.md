@@ -90,9 +90,9 @@ Pro úspěšné dekódování je naprosto nezbytné použít stejnou metodu a kl
 
 ## Řešení případné chybové hlášky
 
-Pokud se objeví chybová hláška `OSError: Could not load shared object file: llvmlite.dll`, která se může objevit při importu knihovny galois, ta následně používá numba, což vede k problému s llvmlite. Postupujte následovně:
+Pokud se objeví chybová hláška `OSError: Could not load shared object file: llvmlite.dll`, která se může objevit při importu knihovny `galois`. Tato knihovna následně používá `numba`, což vede k problému s `llvmlite`. Pro vyřešení problému postupujte následovně:
 
-1. Zkuste nejprve přeinstalovat numba a llvmlite.
+1. Zkuste nejprve přeinstalovat `numba` a `llvmlite`.
 2. Pokud to nepomůže, stáhněte a nainstalujte Visual C++ Redistributable:
    - **Pro x64:** [Stáhnout VC Redist x64](https://aka.ms/vs/17/release/vc_redist.x64.exe)
    - **Další verze a informace:** [Visual Studio 2017 Redistributable](https://learn.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist?view=msvc-170)
